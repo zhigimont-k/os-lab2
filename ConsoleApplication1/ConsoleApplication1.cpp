@@ -4,20 +4,17 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <strsafe.h>
+#include <conio.h>
 
 
 
 using namespace std;
 
-SECURITY_ATTRIBUTES saAttr;
-PROCESS_INFORMATION pi; 
-STARTUPINFO si;
-HANDLE* hChildProcesses = new HANDLE[2];
+
 HANDLE hMapping; 
 HANDLE hFile;
-LPCWSTR fname = (LPCWSTR) "D://14979674615650.jpg";
-LPCWSTR fnamecopy = (LPCWSTR) "D://14979674615650 copy.jpg";
 
 struct FileMapping {
 	HANDLE hFile;
@@ -26,30 +23,30 @@ struct FileMapping {
 	unsigned char* dataPtr;
 };
 
-FileMapping* CreateWriterProcess() {
-	bool success = CreateProcess(NULL, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-	if (hChildProcesses[0] == nullptr) {
+FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTES saProcess, SECURITY_ATTRIBUTES saThread, STARTUPINFO si, PROCESS_INFORMATION pi) {
+	bool success = CreateProcess(NULL, szPath, &saProcess, &saThread, FALSE, NULL, NULL, NULL, &si, &pi);
+	if (!success) {
 		cerr << "CreateWriterProcess failed" << endl;
-		//CloseHandle(hChildProcesses[0]);
-		//return 0;
-	}
+	} else cout << "CreateWriterProcess success" << endl;
 
 	DWORD dwFileSize = GetFileSize(hFile, nullptr);
 	if (dwFileSize == INVALID_FILE_SIZE) {
-		std::cerr << "fileMappingCreate - GetFileSize failed, fname =  "
-			<< fname << std::endl;
+		std::cerr << "fileMappingCreate - GetFileSize failed"
+			<< std::endl;
 		CloseHandle(hFile);
 		//return nullptr;
 	}
+	else cout << "CreateWriterProcess: GetFileSize success" << endl;
 
 	hMapping = CreateFileMapping(hFile, nullptr, PAGE_READONLY, 0, 0,
 		nullptr);
 	if (hMapping == nullptr) {
-		cerr << "CreateFileMapping failed, fname =  "
-			<< fname << endl;
+		cerr << "CreateFileMapping failed"
+			<< endl;
 		CloseHandle(hFile);
 		//return 0;
 	}
+	else cout << "CreateWriterProcess: CreateFileMapping success" << endl;
 
 	unsigned char* dataPtr = (unsigned char*)MapViewOfFile(hMapping,
 		FILE_MAP_READ,
@@ -57,22 +54,24 @@ FileMapping* CreateWriterProcess() {
 		0,
 		dwFileSize);
 	if (dataPtr == nullptr) {
-		std::cerr << "MapViewOfFile failed, fname =  "
-			<< fname << std::endl;
+		std::cerr << "MapViewOfFile failed"
+			<< std::endl;
 		CloseHandle(hMapping);
 		CloseHandle(hFile);
 		//return nullptr;
 	}
+	else cout << "CreateWriterProcess: MapViewOfFile success" << endl;
 
 	FileMapping* mapping = (FileMapping*)malloc(sizeof(FileMapping));
 	if (mapping == nullptr) {
-		std::cerr << "malloc failed, fname = "
-			<< fname << std::endl;
+		std::cerr << "malloc failed"
+			<< std::endl;
 		UnmapViewOfFile(dataPtr);
 		CloseHandle(hMapping);
 		CloseHandle(hFile);
 		//return nullptr;
 	}
+	else cout << "CreateWriterProcess: FileMapping success" << endl;
 	mapping->hFile = hFile;
 	mapping->hMapping = hMapping;
 	mapping->dataPtr = dataPtr;
@@ -80,14 +79,14 @@ FileMapping* CreateWriterProcess() {
 	return mapping;
 };
 
-void CreateReaderProcess(FileMapping* mapping) {
+void CreateReaderProcess(FileMapping* mapping, TCHAR* szPath, SECURITY_ATTRIBUTES saProcess, SECURITY_ATTRIBUTES saThread, STARTUPINFO si, PROCESS_INFORMATION pi) {
 	bool success = CreateProcess(NULL, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 	if (!success) {
 		cerr << "readerProcessCreate - CreateReaderProcess failed" << endl;
 		//CloseHandle(hChildProcesses[1]);
 		//return nullptr;
 	}
-	HANDLE hFileCopy = CreateFile(fnamecopy, GENERIC_READ, 0, nullptr, OPEN_EXISTING,
+	HANDLE hFileCopy = CreateFile(L"D://copy.jpg", GENERIC_READ, 0, nullptr, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL, nullptr);
 	bool success2 = WriteFile(hFileCopy, mapping->dataPtr, mapping->fsize, 0, 0);
 	if (!success2) {
@@ -99,34 +98,40 @@ void CreateReaderProcess(FileMapping* mapping) {
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	hFile = CreateFile(fname, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "CreateFile failed, fname =  "
-			<< fname << endl;
-		return 0;
-	}
 
-	DWORD dwFileSize = GetFileSize(hFile, nullptr);
-	if (dwFileSize == INVALID_FILE_SIZE) {
-		cerr << "GetFileSize failed, fname =  "
-			<< fname << endl;
-		CloseHandle(hFile);
-		return 0;
-	}
-
-
-	
-
+	SECURITY_ATTRIBUTES saAttr;
+	PROCESS_INFORMATION pi;
+	STARTUPINFO si = { sizeof(si) };
+	SECURITY_ATTRIBUTES saProcess, saThread;
+	TCHAR szPath[MAX_PATH];
+	ZeroMemory(&si, sizeof(si));
+	saProcess.nLength = sizeof(saProcess);
+	saProcess.lpSecurityDescriptor = NULL;
+	saProcess.bInheritHandle = TRUE;
+	saThread.nLength = sizeof(saThread);
+	saThread.lpSecurityDescriptor = NULL;
+	saThread.bInheritHandle = FALSE;
 
 	printf("\n->Start of parent execution.\n");
+	boolean success = CreateProcess(NULL, szPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+	if (!success) {
+		cerr << "CreateMainProcess failed" << endl;
+		cout << GetLastError() << endl;
+	}
+	else cout << "CreateMainProcess success" << endl;
 
-
+	hFile = CreateFile(L"D://14979674615650.jpg", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		cerr << "CreateFile failed" << endl;
+		return 0;
+	}
+	
 	HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
-	FileMapping* mapping = CreateWriterProcess();
+	FileMapping* mapping = CreateWriterProcess(hFile, szPath, saProcess, saThread, si, pi);
 	ReleaseMutex(mutex);
 
 	HANDLE mutex2 = CreateMutex(NULL, FALSE, NULL);
-	CreateReaderProcess(mapping);
+	CreateReaderProcess(mapping, szPath, saProcess, saThread, si, pi);
 	ReleaseMutex(mutex2);
 	//WaitForMultipleObjects(2, hChildProcesses, TRUE, INFINITE);
 
@@ -138,6 +143,8 @@ int _tmain(int argc, TCHAR *argv[])
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 
+	//getch();
+	getchar();
 	return 0;
 };
 
