@@ -24,7 +24,7 @@ struct FileMapping {
 };
 
 FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTES saProcess, SECURITY_ATTRIBUTES saThread, STARTUPINFO si, PROCESS_INFORMATION pi) {
-	bool success = CreateProcess(NULL, szPath, &saProcess, &saThread, FALSE, NULL, NULL, NULL, &si, &pi);
+	bool success = CreateProcess(NULL, szPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	if (!success) {
 		cerr << "CreateWriterProcess failed" << endl;
 	} else cout << "CreateWriterProcess success" << endl;
@@ -80,7 +80,7 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 };
 
 void CreateReaderProcess(FileMapping* mapping, TCHAR* szPath, SECURITY_ATTRIBUTES saProcess, SECURITY_ATTRIBUTES saThread, STARTUPINFO si, PROCESS_INFORMATION pi) {
-	bool success = CreateProcess(NULL, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+	bool success = CreateProcess(NULL, szPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	if (!success) {
 		cerr << "readerProcessCreate - CreateReaderProcess failed" << endl;
 		//CloseHandle(hChildProcesses[1]);
@@ -88,11 +88,17 @@ void CreateReaderProcess(FileMapping* mapping, TCHAR* szPath, SECURITY_ATTRIBUTE
 	}
 	HANDLE hFileCopy = CreateFile(L"D://copy.jpg", GENERIC_READ, 0, nullptr, OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (hFileCopy == nullptr) {
+		cerr << "readerProcessCreate - CreateFile failed" << endl;
+		return;
+	}
 	bool success2 = WriteFile(hFileCopy, mapping->dataPtr, mapping->fsize, 0, 0);
 	if (!success2) {
 		cerr << "readerProcessCreate - WriteFile failed" << endl;
+		cout << GetLastError() << endl;
 		//CloseHandle(hChildProcesses[1]);
 		//return nullptr;
+		return;
 	}
 }
 
@@ -103,7 +109,9 @@ int _tmain(int argc, TCHAR *argv[])
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si = { sizeof(si) };
 	SECURITY_ATTRIBUTES saProcess, saThread;
-	TCHAR szPath[MAX_PATH];
+	TCHAR szPath[] = TEXT("cmd.exe");
+	//TCHAR szPath[MAX_PATH];
+	//LPWSTR szPath = L"calc.exe";
 	ZeroMemory(&si, sizeof(si));
 	saProcess.nLength = sizeof(saProcess);
 	saProcess.lpSecurityDescriptor = NULL;
@@ -113,7 +121,7 @@ int _tmain(int argc, TCHAR *argv[])
 	saThread.bInheritHandle = FALSE;
 
 	printf("\n->Start of parent execution.\n");
-	boolean success = CreateProcess(NULL, szPath, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+	boolean success = CreateProcess(NULL, szPath, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	if (!success) {
 		cerr << "CreateMainProcess failed" << endl;
 		cout << GetLastError() << endl;
