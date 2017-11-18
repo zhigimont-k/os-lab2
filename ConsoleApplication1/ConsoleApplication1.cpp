@@ -31,8 +31,7 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 
 	DWORD dwFileSize = GetFileSize(hFile, nullptr);
 	if (dwFileSize == INVALID_FILE_SIZE) {
-		std::cerr << "fileMappingCreate - GetFileSize failed"
-			<< std::endl;
+		std::cerr << "fileMappingCreate - GetFileSize failed with error" << GetLastError() << endl;
 		CloseHandle(hFile);
 		//return nullptr;
 	}
@@ -41,8 +40,7 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 	hMapping = CreateFileMapping(hFile, nullptr, PAGE_READONLY, 0, 0,
 		nullptr);
 	if (hMapping == nullptr) {
-		cerr << "CreateFileMapping failed"
-			<< endl;
+		cerr << "CreateFileMapping failed with error" << GetLastError() << endl;
 		CloseHandle(hFile);
 		//return 0;
 	}
@@ -54,8 +52,7 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 		0,
 		dwFileSize);
 	if (dataPtr == nullptr) {
-		std::cerr << "MapViewOfFile failed"
-			<< std::endl;
+		std::cerr << "MapViewOfFile failed with error" << GetLastError() << endl;
 		CloseHandle(hMapping);
 		CloseHandle(hFile);
 		//return nullptr;
@@ -64,8 +61,7 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 
 	FileMapping* mapping = (FileMapping*)malloc(sizeof(FileMapping));
 	if (mapping == nullptr) {
-		std::cerr << "malloc failed"
-			<< std::endl;
+		std::cerr << "malloc failed with error" << GetLastError() << endl;
 		UnmapViewOfFile(dataPtr);
 		CloseHandle(hMapping);
 		CloseHandle(hFile);
@@ -82,24 +78,21 @@ FileMapping* CreateWriterProcess(HANDLE hFile, TCHAR* szPath, SECURITY_ATTRIBUTE
 void CreateReaderProcess(FileMapping* mapping, TCHAR* szPath, SECURITY_ATTRIBUTES saProcess, SECURITY_ATTRIBUTES saThread, STARTUPINFO si, PROCESS_INFORMATION pi) {
 	bool success = CreateProcess(NULL, szPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	if (!success) {
-		cerr << "readerProcessCreate - CreateReaderProcess failed" << endl;
-		//CloseHandle(hChildProcesses[1]);
-		//return nullptr;
+		cerr << "CreateReaderProcess: CreateReaderProcess failed with error" << GetLastError() << endl;
+		return;
 	}
-	HANDLE hFileCopy = CreateFile(L"D://copy.jpg", GENERIC_READ, 0, nullptr, OPEN_EXISTING,
+	HANDLE hFileCopy = CreateFile(L"D://copy.png", GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (hFileCopy == nullptr) {
-		cerr << "readerProcessCreate - CreateFile failed" << endl;
+	if (hFileCopy == INVALID_HANDLE_VALUE) {
+		cerr << "CreateReaderProcess: CreateFile failed with error" << GetLastError() << endl;
 		return;
 	}
 	bool success2 = WriteFile(hFileCopy, mapping->dataPtr, mapping->fsize, 0, 0);
 	if (!success2) {
-		cerr << "readerProcessCreate - WriteFile failed" << endl;
-		cout << GetLastError() << endl;
-		//CloseHandle(hChildProcesses[1]);
-		//return nullptr;
+		cerr << "CreateReaderProcess: WriteFile failed with error" << GetLastError() << endl;
 		return;
 	}
+	CloseHandle(hFileCopy);
 }
 
 int _tmain(int argc, TCHAR *argv[])
@@ -123,14 +116,14 @@ int _tmain(int argc, TCHAR *argv[])
 	printf("\n->Start of parent execution.\n");
 	boolean success = CreateProcess(NULL, szPath, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	if (!success) {
-		cerr << "CreateMainProcess failed" << endl;
+		cerr << "CreateMainProcess failed with error" << GetLastError() << endl;
 		cout << GetLastError() << endl;
 	}
 	else cout << "CreateMainProcess success" << endl;
 
-	hFile = CreateFile(L"D://14979674615650.jpg", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	hFile = CreateFile(L"D://test.png", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "CreateFile failed" << endl;
+		cerr << "CreateFile failed with error" << GetLastError() << endl;
 		return 0;
 	}
 	
