@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 #include <windows.h>
@@ -9,59 +10,64 @@
 
 using namespace std;
 
-#define BUF_SIZE 256
-TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
+//#define BUF_SIZE 256
+
+TCHAR szName[] = TEXT("MyFileMappingObject");
 TCHAR szMsg[] = TEXT("Message from first process.");
 
+using namespace std;
 
 int _tmain(int argc, TCHAR *argv[])
 {
 	HANDLE hMapFile;
-	LPCTSTR pBuf;
-	HANDLE hFile = CreateFile((LPCSTR)"D://test.txt", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	unsigned char* pBuf;
+	HANDLE hFile = CreateFile(L"D://test.txt", GENERIC_WRITE | GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "CreateFile failed with error" << GetLastError() << endl;
+		cerr << "CreateFile failed with error " << GetLastError() << endl;
 	}
-	else cout << "CreateFile succeed" << endl;
+	else cout << "CreateFile succeeded" << endl;
 	HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
-	hMapFile = CreateFileMapping(
-		hFile,    // use paging file
-		NULL,                    // default security
-		PAGE_READONLY,          // read/write access
-		0,                       // maximum object size (high-order DWORD)
-		BUF_SIZE,                // maximum object size (low-order DWORD)
-		szName);                 // name of mapping object
-
-	if (hMapFile == NULL)
-	{
-		_tprintf(TEXT("Could not create file mapping object (%d).\n"),
-			GetLastError());
-		return 1;
+	DWORD dwFileSize = GetFileSize(hFile, nullptr);
+	if (dwFileSize == INVALID_FILE_SIZE) {
+		std::cerr << "GetFileSize failed with error" << GetLastError() << endl;
+		CloseHandle(hFile);
+		//return nullptr;
 	}
-	pBuf = (LPTSTR)MapViewOfFile(hMapFile,   // handle to map object
-		FILE_MAP_ALL_ACCESS, // read/write permission
+	else cout << "WriterProcess: GetFileSize success" << endl;
+
+	hMapFile = CreateFileMapping(hFile, nullptr, PAGE_READWRITE, 0, 0,
+		szName);
+	if (hMapFile == nullptr) {
+		cerr << "CreateFileMapping failed with error" << GetLastError() << endl;
+		CloseHandle(hFile);
+		//return 0;
+	}
+	else cout << "CreateWriterProcess: CreateFileMapping success" << endl;
+
+	pBuf = (unsigned char*)MapViewOfFile(hMapFile,
+		FILE_MAP_READ,
 		0,
 		0,
-		BUF_SIZE);
-
-	if (pBuf == NULL)
-	{
-		_tprintf(TEXT("Could not map view of file (%d).\n"),
-			GetLastError());
-
+		dwFileSize);
+	if (pBuf == nullptr) {
+		cerr << "MapViewOfFile failed with error" << GetLastError() << endl;
 		CloseHandle(hMapFile);
-
-		return 1;
+		CloseHandle(hFile);
+		//return nullptr;
 	}
+	else cout << "WriterProcess: MapViewOfFile success" << endl;
 
 
-	CopyMemory((PVOID)pBuf, szMsg, (_tcslen(szMsg) * sizeof(TCHAR)));
+	//cout << "pBuf: " << pBuf << endl;
 
 	UnmapViewOfFile(pBuf);
+	//CloseHandle(hMapFile);
+	CloseHandle(hFile);
 	ReleaseMutex(mutex);
-	CloseHandle(hMapFile);
 
 
 	getchar();
 	return 0;
 }
+
+

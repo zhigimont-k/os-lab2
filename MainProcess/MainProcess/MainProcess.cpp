@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 #include <windows.h>
@@ -38,22 +39,22 @@ int _tmain()
 	}
 	else cout << "CreateMainProcess success" << endl;
 
-	hFile = CreateFile((LPCSTR)"D://test.txt", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	/*hFile = CreateFile(L"D://test.txt", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "CreateFile failed with error" << GetLastError() << endl;
+		cerr << "CreateFile failed with error " << GetLastError() << endl;
 		//return 0;
-	}
+	}*/
 
 
-	char cmdWriterArgs[] = "WriterProcess.exe hFile";
+	//char cmdWriterArgs[] = "WriterProcess.exe hFile";
 
 	bool writeSuccess = CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	if (!writeSuccess) {
 		cerr << "CreateWriterProcess failed" << endl;
 	}
 	else cout << "CreateWriterProcess success" << endl;
-	
-	bool readSuccess = CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+
+	bool readSuccess = CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	if (!readSuccess) {
 		cerr << "CreateReaderProcess failed" << endl;
 	}
@@ -73,3 +74,4 @@ int _tmain()
 	getchar();
 	return 0;
 }
+
