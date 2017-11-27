@@ -10,9 +10,6 @@
 
 using namespace std;
 
-#define BUF_SIZE 256
-TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-HANDLE hFile;
 
 int _tmain()
 {
@@ -39,14 +36,8 @@ int _tmain()
 	}
 	else cout << "CreateMainProcess success" << endl;
 
-	/*hFile = CreateFile(L"D://test.txt", GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "CreateFile failed with error " << GetLastError() << endl;
-		//return 0;
-	}*/
-
-
-	//char cmdWriterArgs[] = "WriterProcess.exe hFile";
+	
+	//size_t fileSize = (size_t)dwFileSize;
 
 	bool writeSuccess = CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	if (!writeSuccess) {
@@ -66,7 +57,6 @@ int _tmain()
 
 
 	//CloseHandle(hMapping);
-	CloseHandle(hFile);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 

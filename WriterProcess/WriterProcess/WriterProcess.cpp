@@ -13,20 +13,19 @@ using namespace std;
 //#define BUF_SIZE 256
 
 TCHAR szName[] = TEXT("MyFileMappingObject");
-TCHAR szMsg[] = TEXT("Message from first process.");
 
 using namespace std;
 
-int _tmain(int argc, TCHAR *argv[])
+int _tmain(int argc, TCHAR* argv[])
 {
 	HANDLE hMapFile;
 	unsigned char* pBuf;
-	HANDLE hFile = CreateFile(L"D://test.txt", GENERIC_WRITE | GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
+	HANDLE hFile = CreateFile(L"D://test.png", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		cerr << "CreateFile failed with error " << GetLastError() << endl;
 	}
 	else cout << "CreateFile succeeded" << endl;
-	HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
 	DWORD dwFileSize = GetFileSize(hFile, nullptr);
 	if (dwFileSize == INVALID_FILE_SIZE) {
 		std::cerr << "GetFileSize failed with error" << GetLastError() << endl;
@@ -39,7 +38,6 @@ int _tmain(int argc, TCHAR *argv[])
 		szName);
 	if (hMapFile == nullptr) {
 		cerr << "CreateFileMapping failed with error" << GetLastError() << endl;
-		CloseHandle(hFile);
 		//return 0;
 	}
 	else cout << "CreateWriterProcess: CreateFileMapping success" << endl;
@@ -51,8 +49,6 @@ int _tmain(int argc, TCHAR *argv[])
 		dwFileSize);
 	if (pBuf == nullptr) {
 		cerr << "MapViewOfFile failed with error" << GetLastError() << endl;
-		CloseHandle(hMapFile);
-		CloseHandle(hFile);
 		//return nullptr;
 	}
 	else cout << "WriterProcess: MapViewOfFile success" << endl;
@@ -60,7 +56,7 @@ int _tmain(int argc, TCHAR *argv[])
 
 	//cout << "pBuf: " << pBuf << endl;
 
-	UnmapViewOfFile(pBuf);
+	//UnmapViewOfFile(pBuf);
 	//CloseHandle(hMapFile);
 	CloseHandle(hFile);
 	ReleaseMutex(mutex);
