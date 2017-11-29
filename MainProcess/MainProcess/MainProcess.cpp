@@ -9,7 +9,6 @@
 #include <conio.h>
 
 using namespace std;
-TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 
 int _tmain()
 {
@@ -20,7 +19,7 @@ int _tmain()
 	STARTUPINFO siReader = { sizeof(siReader) };
 	SECURITY_ATTRIBUTES saProcess, saThread;
 	TCHAR szPath[] = TEXT("cmd.exe");
-	//ZeroMemory(&si, sizeof(si));
+	ZeroMemory(&si, sizeof(si));
 	saProcess.nLength = sizeof(saProcess);
 	saProcess.lpSecurityDescriptor = NULL;
 	saProcess.bInheritHandle = TRUE;
@@ -36,21 +35,18 @@ int _tmain()
 	}
 	else cout << "CreateMainProcess success" << endl;
 		
-	//bool writeSuccess = CreateProcess(_T("C:\\Users\\Karina\\source\\repos\\ConsoleApplication1\\WriterProcess\\Debug\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	bool writeSuccess = CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter);
 	if (!writeSuccess) {
 		cerr << "CreateWriterProcess failed" << endl;
 	}
 	else cout << "CreateWriterProcess success" << endl;
 
-	//bool readSuccess = CreateProcess(_T("C:\\Users\\Karina\\source\\repos\\ConsoleApplication1\\ReaderProcess\\Debug\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
 	bool readSuccess = CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader);
 	if (!readSuccess) {
 		cerr << "CreateReaderProcess failed" << endl;
 	}
 	else cout << "CreateReaderProcess success" << endl;
 
-	//WaitForMultipleObjects(2, hChildProcesses, TRUE, INFINITE);
 
 	cout << "->End of parent execution." << endl;
 
