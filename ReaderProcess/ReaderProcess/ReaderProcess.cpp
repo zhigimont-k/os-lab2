@@ -11,6 +11,7 @@
 
 #define BUF_SIZE 256
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
+TCHAR globalMutex[] = TEXT("Global\\mutex");
 
 using namespace std;
 
@@ -18,8 +19,10 @@ int _tmain()
 {
 	HANDLE hFileMapping;
 	LPCTSTR pBuf;
-	HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
 	__try {
+		HANDLE mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, globalMutex);
+		WaitForSingleObject(mutex, INFINITE);
+
 		hFileMapping = OpenFileMapping(
 			FILE_MAP_ALL_ACCESS,   // read/write access
 			FALSE,                 // do not inherit the name
@@ -62,7 +65,7 @@ int _tmain()
 	else cout << "ReaderProcess: CreateFile success" << endl;
 	DWORD dwFileSize = GetFileSize(hFile, nullptr);
 	if (dwFileSize == INVALID_FILE_SIZE) {
-		std::cerr << "ReaderProcess: GetFileSize failed with error" << GetLastError() << endl;
+		cerr << "ReaderProcess: GetFileSize failed with error " << GetLastError() << endl;
 		__leave;
 	}
 	CloseHandle(hFile);
@@ -71,6 +74,8 @@ int _tmain()
 	char buffer[200];
 	memcpy(buffer, pBuf, 100);
 
+
+
 	bool success = WriteFile(hFileCopy, buffer, 100, 0, 0);
 	if (!success) {
 		cerr << "ReaderProcess: WriteFile failed with error " << GetLastError() << endl;
@@ -78,11 +83,12 @@ int _tmain()
 	}
 	else cout << "ReaderProcess: WriteFile success" << endl;
 	CloseHandle(hFileCopy);
+
+	CloseHandle(mutex);
 	}
 
 	__finally {
 
-	ReleaseMutex(mutex);
 
 	getchar();
 	return 0;

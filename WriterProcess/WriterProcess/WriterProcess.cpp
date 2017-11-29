@@ -19,9 +19,12 @@ using namespace std;
 
 int _tmain()
 {
+	HANDLE hMapFile;
+	LPCTSTR pBuf;
 	__try {
-		HANDLE hMapFile;
-		unsigned char* pBuf;
+		HANDLE mutex = CreateMutex(NULL, TRUE, globalMutex);
+		mutex = OpenMutex(MUTEX_ALL_ACCESS, TRUE, globalMutex);
+
 		HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile == INVALID_HANDLE_VALUE) {
 			cerr << "CreateFile failed with error " << GetLastError() << endl;
@@ -37,19 +40,17 @@ int _tmain()
 		}
 		else cout << "WriterProcess: GetFileSize success" << endl;
 
-		HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
-		hMapFile = CreateFileMapping(hFile, nullptr, PAGE_READWRITE, 0, 0,
+		hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
 			szName);
-		if (hMapFile == nullptr) {
+		if (hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
 			cerr << "CreateFileMapping failed with error" << GetLastError() << endl;
 			CloseHandle(hMapFile);
 			__leave;
 		}
 		else cout << "WriterProcess: CreateFileMapping success" << endl;
 		CloseHandle(hFile);
-		ReleaseMutex(mutex);
 
-		pBuf = (unsigned char*)MapViewOfFile(hMapFile,
+		pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
 			FILE_MAP_ALL_ACCESS,
 			0,
 			0,
@@ -60,10 +61,11 @@ int _tmain()
 			__leave;
 		}
 		else cout << "WriterProcess: MapViewOfFile success" << endl;
-		
+
+		ReleaseMutex(mutex);
+		getchar();
 		UnmapViewOfFile(pBuf);
 		CloseHandle(hMapFile);
-		//CloseHandle(hFile);
 	}
 
 	__finally {

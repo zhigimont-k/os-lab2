@@ -35,17 +35,13 @@ int _tmain()
 	}
 	else cout << "CreateMainProcess success" << endl;
 		
-	bool writeSuccess = CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter);
-	if (!writeSuccess) {
-		cerr << "CreateWriterProcess failed" << endl;
+	if ( !CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
+		!CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
+		cerr << "CreateChildProcessese failed" << endl;
 	}
-	else cout << "CreateWriterProcess success" << endl;
-
-	bool readSuccess = CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader);
-	if (!readSuccess) {
-		cerr << "CreateReaderProcess failed" << endl;
+	else { 
+		cout << "CreateWriterProcess success" << endl << "CreateReaderProcess success" << endl;
 	}
-	else cout << "CreateReaderProcess success" << endl;
 
 
 	cout << "->End of parent execution." << endl;
