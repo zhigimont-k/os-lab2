@@ -11,19 +11,32 @@
 
 #define BUF_SIZE 256
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR globalMutex[] = TEXT("Global\\mutex");
+//TCHAR globalMutex[] = TEXT("Global\\globalMutex");
 
 using namespace std;
 
-int _tmain()
+int _tmain(int argc, TCHAR *argv[])
 {
 	HANDLE hFileMapping;
-	LPCTSTR pBuf;
+	LPCTSTR pBuf; 
+	HANDLE mutex;
 	__try {
-		HANDLE mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, globalMutex);
-		WaitForSingleObject(mutex, INFINITE);
 
-		hFileMapping = OpenFileMapping(
+
+		mutex = CreateMutex(0, TRUE, _T("Global\\mutex"));
+			if (GetLastError() == 0) {
+				//WaitForSingleObject(mutex, INFINITE);
+				cout << "ReaderProcess: CreateMutex success" << endl;
+				ReleaseMutex(mutex);
+			}
+
+			mutex = OpenMutex(MUTEX_ALL_ACCESS, false, _T("Global\\mutex"));
+			if (GetLastError() == 0) {
+				cout << "ReaderProcess: OpenMutex success" << endl;
+			}
+			//WaitForSingleObject(mutex, INFINITE);
+
+			hFileMapping = OpenFileMapping(
 			FILE_MAP_ALL_ACCESS,   // read/write access
 			FALSE,                 // do not inherit the name
 			szName);               // name of mapping object
@@ -41,7 +54,6 @@ int _tmain()
 		0,
 		0,
 		0);
-	CloseHandle(hFileMapping);
 
 	if (pBuf == NULL)
 	{
@@ -50,14 +62,14 @@ int _tmain()
 		__leave;
 	}
 
-	HANDLE hFileCopy = CreateFile(L"D://copy.docx", GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+	HANDLE hFileCopy = CreateFile(argv[2], GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFileCopy == INVALID_HANDLE_VALUE) {
 		cout << "Could not create file copy (%d). Finished with error " << GetLastError() << endl;
 	}
 	else cout << "ReaderProcess: CreateFileCopy success" << endl;
 
-	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		cerr << "ReaderProcess: CreateFile failed with error " << GetLastError() << endl;
 		__leave;
@@ -71,6 +83,9 @@ int _tmain()
 	CloseHandle(hFile);
 
 	//bool success = WriteFile(hFileCopy, pBuf, strlen((const char*)pBuf) * sizeof(unsigned char*), 0, 0);
+	
+	
+	
 	char buffer[200];
 	memcpy(buffer, pBuf, 100);
 
@@ -82,9 +97,12 @@ int _tmain()
 		__leave;
 	}
 	else cout << "ReaderProcess: WriteFile success" << endl;
-	CloseHandle(hFileCopy);
 
+	ReleaseMutex(mutex);
 	CloseHandle(mutex);
+	UnmapViewOfFile(pBuf);
+	CloseHandle(hFileMapping);
+	CloseHandle(hFileCopy);
 	}
 
 	__finally {

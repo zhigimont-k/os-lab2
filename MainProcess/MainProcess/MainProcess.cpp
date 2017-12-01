@@ -9,6 +9,7 @@
 #include <conio.h>
 
 using namespace std;
+//TCHAR globalMutex[] = TEXT("Global\\mutex");
 
 int _tmain()
 {
@@ -34,9 +35,11 @@ int _tmain()
 		cout << GetLastError() << endl;
 	}
 	else cout << "CreateMainProcess success" << endl;
-		
-	if ( !CreateProcess(_T(".\\WriterProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
-		!CreateProcess(_T(".\\ReaderProcess.exe"), szPath, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
+
+	//HANDLE mutex = CreateMutex(0, false, _T("Global\\mutex"));
+
+	if ( !CreateProcess(_T(".\\WriterProcess.exe"), L" D://test.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
+		!CreateProcess(_T(".\\ReaderProcess.exe"), L" D://test.docx D://copy.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
 		cerr << "CreateChildProcessese failed" << endl;
 	}
 	else { 

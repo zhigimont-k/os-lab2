@@ -10,22 +10,21 @@
 
 using namespace std;
 
-//#define BUF_SIZE 256
+#define BUF_SIZE 256
 
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR globalMutex[] = TEXT("Global\\mutex");
+//TCHAR globalMutex[] = TEXT("Global\\globalMutex");
 
 using namespace std;
 
-int _tmain()
+int _tmain(int argc, TCHAR *argv[])
 {
 	HANDLE hMapFile;
 	LPCTSTR pBuf;
+	HANDLE mutex;
 	__try {
-		HANDLE mutex = CreateMutex(NULL, TRUE, globalMutex);
-		mutex = OpenMutex(MUTEX_ALL_ACCESS, TRUE, globalMutex);
 
-		HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile == INVALID_HANDLE_VALUE) {
 			cerr << "CreateFile failed with error " << GetLastError() << endl;
 			CloseHandle(hFile);
@@ -33,39 +32,55 @@ int _tmain()
 		}
 		else cout << "WriterProcess: CreateFile success" << endl;
 		DWORD dwFileSize = GetFileSize(hFile, nullptr);
-		if (dwFileSize == INVALID_FILE_SIZE) {
+		if (dwFileSize == INVALID_FILE_SIZE || dwFileSize == 0) {
 			cerr << "GetFileSize failed with error" << GetLastError() << endl;
 			CloseHandle(hFile);
 			__leave;
 		}
 		else cout << "WriterProcess: GetFileSize success" << endl;
 
-		hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
-			szName);
-		if (hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
-			cerr << "CreateFileMapping failed with error" << GetLastError() << endl;
-			CloseHandle(hMapFile);
-			__leave;
-		}
-		else cout << "WriterProcess: CreateFileMapping success" << endl;
-		CloseHandle(hFile);
+		mutex = CreateMutex(NULL, TRUE, _T("Global\\mutex"));
+			if (GetLastError() == 0) {
+				cout << "WriterProcess: CreateMutex success" << endl;
+			}
+			if (GetLastError() != 0) {
+				mutex = OpenMutex(MUTEX_ALL_ACCESS, TRUE, _T("Global\\mutex"));
+				cout << "WriterProcess: OpenMutex success" << endl;
+			}
 
-		pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
-			FILE_MAP_ALL_ACCESS,
-			0,
-			0,
-			dwFileSize);
-		if (pBuf == nullptr) {
-			cerr << "MapViewOfFile failed with error" << GetLastError() << endl;
-			CloseHandle(hMapFile);
-			__leave;
-		}
-		else cout << "WriterProcess: MapViewOfFile success" << endl;
 
-		ReleaseMutex(mutex);
-		getchar();
-		UnmapViewOfFile(pBuf);
-		CloseHandle(hMapFile);
+
+			hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
+				szName);
+			if (GetLastError() != 0) {
+				hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
+				if (hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
+					cerr << "OpenFileMapping failed with error" << GetLastError() << endl;
+					CloseHandle(hMapFile);
+					__leave;
+			}
+			
+			}
+			else cout << "WriterProcess: CreateFileMapping success" << endl;
+			CloseHandle(hFile);
+
+			pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
+				FILE_MAP_ALL_ACCESS,
+				0,
+				0,
+				dwFileSize);
+			if (pBuf == NULL) {
+				cerr << "MapViewOfFile failed with error" << GetLastError() << endl;
+				CloseHandle(hMapFile);
+				__leave;
+			}
+			else cout << "WriterProcess: MapViewOfFile success" << endl;
+
+			ReleaseMutex(mutex);
+			_getch();
+			UnmapViewOfFile(pBuf);
+			//CloseHandle(hMapFile);
+
 	}
 
 	__finally {
