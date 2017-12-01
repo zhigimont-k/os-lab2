@@ -1,3 +1,9 @@
 ﻿  WriterProcess.cpp
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(28): warning C4101: dwFileSize: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(36): warning C4101: pData: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(37): warning C4101: iData: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(38): warning C4101: iViewDelta: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(34): warning C4101: lpMapAddress: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(27): warning C4101: dBytesWritten: неиспользованная локальная переменная
   WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.exe
   WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.pdb (Partial PDB)
