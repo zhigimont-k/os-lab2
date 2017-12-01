@@ -43,8 +43,14 @@ int _tmain(int argc, TCHAR *argv[])
 
 		if (hFileMapping == NULL)
 		{
-			cerr << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
-			__leave;
+			//cerr << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			//__leave;
+			do {
+				hFileMapping = OpenFileMapping(
+					FILE_MAP_ALL_ACCESS,   // read/write access
+					FALSE,                 // do not inherit the name
+					szName);
+			} while (hFileMapping == NULL);
 		}
 		else cout << "ReaderProcess: OpenFileMapping success" << endl;
 	
