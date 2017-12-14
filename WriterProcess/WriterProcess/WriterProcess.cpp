@@ -10,9 +10,11 @@
 
 using namespace std;
 
-#define BUF_SIZE 256
+#define BUF_SIZE 4096
 
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
+TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
+TCHAR mutexName[] = TEXT("Global\\MyMutex");
 //TCHAR globalMutex[] = TEXT("Global\\globalMutex");
 
 using namespace std;
@@ -20,7 +22,7 @@ using namespace std;
 int _tmain(int argc, TCHAR *argv[])
 {
 
-	int bytesToWrite = 128;
+	int bytesToWrite = BUF_SIZE;
 	HANDLE hMapFile;
 	LPCTSTR pBuf;
 	HANDLE mutex;
@@ -37,13 +39,20 @@ int _tmain(int argc, TCHAR *argv[])
 	LPCTSTR iData;            // on success contains the first int of data
 	int iViewDelta;       // the offset into the view where the data
 						  //shows up
-	int fileMapStart = 0;
 	__try {
 
 		if (argc == 1) {
 			cout << "Couldn't retrieve command line arguments" << endl;
 			__leave;
 		}
+
+		mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
+		if (mutex == INVALID_HANDLE_VALUE) {
+			cout << "WriterProcess: OpenMutex failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		cout << "WriterProcess: OpenMutex success" << endl;
+
 
 		HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile == INVALID_HANDLE_VALUE) {
@@ -64,75 +73,79 @@ int _tmain(int argc, TCHAR *argv[])
 		GetSystemInfo(&SysInfo);
 		dwSysGran = SysInfo.dwAllocationGranularity;
 		dwFileMapStart = 0;
-
-		while (dwFileMapStart <= dwFileSize) {
-			if (dwFileMapStart > dwFileSize - bytesToWrite) {
-				bytesToWrite = dwFileSize - dwFileMapStart;
-			}
-			//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
-			dwMapViewSize = BUF_SIZE;
-			if (dwMapViewSize > dwFileSize - dwFileMapStart) {
-				dwMapViewSize = dwFileSize - dwFileMapStart;
-			}
-
-			// How large will the file mapping object be?
-			dwFileMapSize = BUF_SIZE;
-			if (dwFileMapSize > dwFileSize - dwFileMapStart) {
-				dwFileMapSize = dwFileSize - dwFileMapStart;
-			}
+		//int fileMapStart = 0;
+		
+		hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
+		if (hMapFile == INVALID_HANDLE_VALUE) {
+			cout << "WriterProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		else cout << "WriterProcess: OpenFileMapping success" << endl;
 
 
-			mutex = CreateMutex(NULL, TRUE, _T("Global\\mutex"));
-			if (GetLastError() == 0) {
-				cout << "WriterProcess: CreateMutex success" << endl;
-			}
-			if (GetLastError() != 0) {
-				mutex = OpenMutex(MUTEX_ALL_ACCESS, TRUE, _T("Global\\mutex"));
-				cout << "WriterProcess: OpenMutex success" << endl;
-			}
+		while (dwFileMapStart < dwFileSize) {
+				DWORD dwWaitResult = WaitForSingleObject(mutex, INFINITE);
+				switch (dwWaitResult)
+				{
+					// The thread got ownership of the mutex
+				case WAIT_OBJECT_0:
+					__try {
+						cout << "WriterProcess: current owner of mutex" << endl;
+						
+						//dwFileMapStart = (fileMapStart / dwSysGran) * dwSysGran;
 
+						if (dwFileMapStart + bytesToWrite > dwFileSize) {
+							bytesToWrite = dwFileSize - dwFileMapStart;
+						}
+						//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
+						dwMapViewSize = BUF_SIZE;
+						if (dwMapViewSize > dwFileSize - dwFileMapStart) {
+							dwMapViewSize = dwFileSize - dwFileMapStart;
+						}
 
-
-			hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
-				szName);
-			if (GetLastError() != 0) {
-				hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
-				if (hMapFile == NULL || hMapFile == INVALID_HANDLE_VALUE) {
-					do {
-						hMapFile = OpenFileMapping(
+						pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
 							FILE_MAP_ALL_ACCESS,
-							FALSE,
-							szName);
-					} while (hMapFile == NULL);
+							0,
+							dwFileMapStart,
+							dwMapViewSize);
+						if (pBuf == NULL) {
+							cerr << "WriterProcess: MapViewOfFile failed with error" << GetLastError() << endl;
+							CloseHandle(hMapFile);
+							__leave;
+						}
+						else cout << "WriterProcess: MapViewOfFile success" << endl;
+
+						//write to shared resource
+
+						UnmapViewOfFile(pBuf);
+						cout << "dwFileMapStart: " << dwFileMapStart << endl;
+						cout << "bytesToWrite: " << bytesToWrite << endl;
+						dwFileMapStart += bytesToWrite;
+					}
+
+					__finally {
+						ReleaseMutex(mutex);
+						if (GetLastError() != 0) {
+							cout << "WriterProcess: ReleaseMutex failed with error " << GetLastError() << endl;
+						}
+					}
+					break;
+
+					// The thread got ownership of an abandoned mutex
+					// The database is in an indeterminate state
+				case WAIT_ABANDONED: {
+					cout << "WAIT_ABANDONED" << endl;
+					return FALSE;
+				}
 				}
 
-			}
-			else cout << "WriterProcess: CreateFileMapping success" << endl;
-			CloseHandle(hFile);
 
-			pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
-				FILE_MAP_ALL_ACCESS,
-				0,
-				dwFileMapStart,
-				dwMapViewSize);
-			if (pBuf == NULL) {
-				cerr << "WriterProcess: MapViewOfFile failed with error" << GetLastError() << endl;
-				CloseHandle(hMapFile);
-				__leave;
-			}
-			else cout << "WriterProcess: MapViewOfFile success" << endl;
 
-			ReleaseMutex(mutex);
-			//_getch();
-			UnmapViewOfFile(pBuf);
-			//CloseHandle(hMapFile); 
-			dwFileMapStart += bytesToWrite;
-			cout << "fileMapStart: " << fileMapStart << endl;
+			}
 		}
 
-	}
-
 	__finally {
+
 		getchar();
 		return 0;
 	}

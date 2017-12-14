@@ -9,14 +9,16 @@
 #include <strsafe.h>
 #pragma comment(lib, "user32.lib")
 
-#define BUF_SIZE 256
+#define BUF_SIZE 4096
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
+TCHAR mutexName[] = TEXT("Global\\MyMutex");
+TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 
 using namespace std;
 
 int _tmain(int argc, TCHAR *argv[])
 {
-	int bytesToWrite = 128;
+	int bytesToWrite = BUF_SIZE;
 	HANDLE hFileMapping;
 	LPCTSTR pBuf; 
 	HANDLE mutex;
@@ -33,14 +35,21 @@ int _tmain(int argc, TCHAR *argv[])
 	LPCTSTR iData;            // on success contains the first int of data
 	int iViewDelta;       // the offset into the view where the data
 						  //shows up
-	int fileMapStart = 0;
+	//int fileMapStart = 0;
 
 	__try {
 
 		if (argc == 1) { cout << "Couldn't retrieve command line arguments" << endl; __leave; }
 
+		mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
+		if (mutex == INVALID_HANDLE_VALUE) {
+			cout << "ReaderProcess: OpenMutex failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		cout << "ReaderProcess: OpenMutex success" << endl;
 
-		HANDLE hFileCopy = CreateFile(argv[2], GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+
+		HANDLE hFileCopy = CreateFile(argv[2], GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFileCopy == INVALID_HANDLE_VALUE) {
 			cout << "Could not create file copy (%d). Finished with error " << GetLastError() << endl;
@@ -64,102 +73,113 @@ int _tmain(int argc, TCHAR *argv[])
 		GetSystemInfo(&SysInfo);
 		dwSysGran = SysInfo.dwAllocationGranularity;
 		dwFileMapStart = 0;
+		int fileMapStart = 0; 
+		
+		hFileMapping = OpenFileMapping(
+			FILE_MAP_ALL_ACCESS,   // read/write access
+			FALSE,                 // do not inherit the name
+			szName);               // name of mapping object
+
+		if (hFileMapping == NULL)
+		{
+			cout << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		else cout << "ReaderProcess: OpenFileMapping success" << endl;
+
+		HANDLE hSharedMemory = OpenFileMapping(
+			FILE_MAP_ALL_ACCESS,   // read/write access
+			FALSE,                 // do not inherit the name
+			sharedMemoryName);               // name of mapping object
+
+		if (hSharedMemory == NULL)
+		{
+			cout << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		else cout << "ReaderProcess: OpenFileMapping success" << endl;
+
 
 		while (dwFileMapStart < dwFileSize) {
-			//dwFileMapStart = (fileMapStart / dwSysGran) * dwSysGran;
-			//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
-			if (dwFileMapStart + bytesToWrite > dwFileSize) {
-				bytesToWrite = dwFileSize - dwFileMapStart;
-			}
-			//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
-			dwMapViewSize = BUF_SIZE;
-			if (dwMapViewSize > dwFileSize - dwFileMapStart) {
-				dwMapViewSize = dwFileSize - dwFileMapStart;
-			}
-
-			// How large will the file mapping object be?
-			dwFileMapSize = BUF_SIZE;
-			if (dwFileMapSize > dwFileSize - dwFileMapStart) {
-				dwFileMapSize = dwFileSize - dwFileMapStart;
-			}
-
-			// The data of interest isn't at the beginning of the
-			// view, so determine how far into the view to set the pointer.
-			iViewDelta = fileMapStart - dwFileMapStart;
-
-			mutex = CreateMutex(0, TRUE, _T("Global\\mutex"));
-			if (GetLastError() == 0) {
-				cout << "ReaderProcess: CreateMutex success" << endl;
-				ReleaseMutex(mutex);
-			}
-
-			mutex = OpenMutex(MUTEX_ALL_ACCESS, false, _T("Global\\mutex"));
-			if (GetLastError() == 0) {
-				cout << "ReaderProcess: OpenMutex success" << endl;
-			}
-
-			hFileMapping = OpenFileMapping(
-				FILE_MAP_ALL_ACCESS,   // read/write access
-				FALSE,                 // do not inherit the name
-				szName);               // name of mapping object
-
-			if (hFileMapping == NULL)
+			DWORD dwWaitResult = WaitForSingleObject(mutex, INFINITE);
+			switch (dwWaitResult)
 			{
-				do {
-					hFileMapping = OpenFileMapping(
-						FILE_MAP_ALL_ACCESS,
-						FALSE,
-						szName);
-				} while (hFileMapping == NULL);
+				// The thread got ownership of the mutex
+			case WAIT_OBJECT_0:
+				__try {
+					cout << "WriterProcess: current owner of mutex" << endl;
+
+					//dwFileMapStart = (fileMapStart / dwSysGran) * dwSysGran;
+					if (dwFileMapStart + bytesToWrite > dwFileSize) {
+						bytesToWrite = dwFileSize - dwFileMapStart;
+					}
+					cout << "Bytes to write: " << bytesToWrite << endl;
+					//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
+					dwMapViewSize = BUF_SIZE;
+					if (dwMapViewSize > dwFileSize - dwFileMapStart) {
+						dwMapViewSize = dwFileSize - dwFileMapStart;
+					}
+
+					/*else {
+					while (GetLastError() != 0) {
+					mutex = OpenMutex(MUTEX_ALL_ACCESS, false, _T("Global\\mutex")); 
+					}
+					}*/
+
+					pBuf = (LPCTSTR)MapViewOfFile(hSharedMemory, // handle to map object
+						FILE_MAP_ALL_ACCESS,  // read/write permission
+						0,
+						0,
+						BUF_SIZE);
+
+					if (pBuf == NULL)
+					{
+						cerr << "ReaderProcess: MapViewOfFile failed with error " << GetLastError() << endl;
+						UnmapViewOfFile(pBuf);
+						__leave;
+					}
+
+					char buffer[BUF_SIZE];
+					memcpy(buffer, pBuf, bytesToWrite);
+
+
+					DWORD dwPtr = SetFilePointer(hFileCopy, 0, NULL, FILE_END); //set pointer position to the end of the file
+					bool success = WriteFile(hFileCopy, sharedMemoryName, bytesToWrite, &dwPtr, 0);
+					if (!success) {
+						cerr << "ReaderProcess: WriteFile failed with error " << GetLastError() << endl;
+						__leave;
+					}
+					else cout << "ReaderProcess: WriteFile success" << endl;
+
+					UnmapViewOfFile(pBuf);
+					cout << "dwFileMapStart: " << dwFileMapStart << endl;
+					cout << "bytesToWrite: " << bytesToWrite << endl;
+					dwFileMapStart += bytesToWrite;
+				}
+
+				__finally {
+					ReleaseMutex(mutex);
+					if (GetLastError() != 0) {
+						cout << "ReaderProcess: ReleaseMutex failed with error " << GetLastError() << endl;
+					}
+				}
+				break;
+
+				// The thread got ownership of an abandoned mutex
+				// The database is in an indeterminate state
+			case WAIT_ABANDONED: {
+				cout << "WAIT_ABANDONED" << endl;
+				return FALSE;
 			}
-			else cout << "ReaderProcess: OpenFileMapping success" << endl;
-
-
-			pBuf = (LPCTSTR)MapViewOfFile(hFileMapping, // handle to map object
-				FILE_MAP_ALL_ACCESS,  // read/write permission
-				0,
-				dwFileMapStart,
-				dwMapViewSize);
-
-			if (pBuf == NULL)
-			{
-				cerr << "ReaderProcess: MapViewOfFile failed with error " << GetLastError() << endl;
-				UnmapViewOfFile(pBuf);
-				__leave;
 			}
-
-			//pData = (char *)pBuf + iViewDelta;
-			//iData = *(LPCTSTR *)pData;
-
-
-
-			char buffer[BUF_SIZE];
-			memcpy(buffer, pBuf, bytesToWrite);
-
-
-			DWORD dwPtr = SetFilePointer(hFileCopy, 0, NULL, FILE_END); //set pointer position to the end of the file
-			bool success = WriteFile(hFileCopy, buffer, bytesToWrite, &dwPtr, 0);
-			if (!success) {
-				cerr << "ReaderProcess: WriteFile failed with error " << GetLastError() << endl;
-				__leave;
-			}
-			else cout << "ReaderProcess: WriteFile success" << endl;
-
-			ReleaseMutex(mutex);
-			UnmapViewOfFile(pBuf);
-			dwFileMapStart += bytesToWrite;
-			cout << "fileMapStart: " << fileMapStart << endl;
-			cout << "(int)dwFileSize: " << (int)dwFileSize << endl;
-
 		}
 
 
 
-		
-	//CloseHandle(mutex);
-	//CloseHandle(hFileMapping);
-	CloseHandle(hFileCopy);
-	}
+
+			
+
+		}
 
 	__finally {
 
