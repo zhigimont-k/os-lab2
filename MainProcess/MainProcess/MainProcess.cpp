@@ -43,31 +43,22 @@ int _tmain()
 		cout << GetLastError() << endl;
 	}
 	else cout << "MainProcess: CreateMainProcess success" << endl;
-
-	mutex = CreateMutex(0, FALSE, mutexName);
-	if (mutex == INVALID_HANDLE_VALUE || mutex == NULL) {
-		cout << "MainProcess: CreateMutex failed with error " << GetLastError() << endl;
-	}
-	else cout << "MainProcess: CreateMutex success" << endl;
-	mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
-	if (mutex == INVALID_HANDLE_VALUE || mutex == NULL) {
-		cout << "MainProcess: OpenMutex failed with error " << GetLastError() << endl;
-	}
-	else cout << "MainProcess: OpenMutex success" << endl;
-
-
-
+	
 	// EVENTS CREATION
-	HANDLE hWriterEvent = CreateEvent(NULL, TRUE, FALSE, writingToMemoryProcessing);
+	HANDLE hWriterEvent = CreateEvent(NULL, TRUE, TRUE, writingToMemoryProcessing);
 	HANDLE hReaderEvent = CreateEvent(NULL, TRUE, FALSE, readingFromMemoryProcessing);
 	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
 		cout << "MainProcess: CreateEvent failed with error " << GetLastError() << endl;
 	}
 	else cout << "MainProcess: CreateEvent success" << endl;
-	OpenEvent(EVENT_MODIFY_STATE, TRUE, writingToMemoryProcessing);
-	OpenEvent(EVENT_MODIFY_STATE, FALSE, readingFromMemoryProcessing);
+	hWriterEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, writingToMemoryProcessing);
+	hReaderEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, readingFromMemoryProcessing);
+	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
+		cout << "MainProcess: OpenEvent failed with error " << GetLastError() << endl;
+	}
+	else cout << "MainProcess: OpenEvent success" << endl;
 
-	HANDLE hFile = CreateFile(L"D://test.txt", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		cerr << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
 	}
@@ -107,8 +98,8 @@ int _tmain()
 	//fix opening shared memory
 
 
-	if ( !CreateProcess(_T("..\\..\\WriterProcess\\Debug\\WriterProcess.exe"), L" D://test.txt", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
-		!CreateProcess(_T("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe"), L" D://test.txt D://copy.txt", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
+	if ( !CreateProcess(_T("..\\..\\WriterProcess\\Debug\\WriterProcess.exe"), L" D://test.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
+		!CreateProcess(_T("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe"), L" D://test.docx D://copy.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
 		cerr << "CreateChildProcesses failed" << endl;
 	}
 	else { 
@@ -123,7 +114,6 @@ int _tmain()
 	CloseHandle(piWriter.hThread);
 	CloseHandle(piReader.hProcess);
 	CloseHandle(piReader.hThread);
-	CloseHandle(mutex);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 

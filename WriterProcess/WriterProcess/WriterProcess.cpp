@@ -15,8 +15,6 @@ using namespace std;
 
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
-TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
-//TCHAR globalMutex[] = TEXT("Global\\globalMutex");
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
 
@@ -30,20 +28,8 @@ int _tmain(int argc, TCHAR *argv[])
 	HANDLE hMapFile;
 	LPCTSTR pBuf;
 	LPCTSTR pBufShared;
-	HANDLE mutex;
-	DWORD dBytesWritten;  // number of bytes written
-	DWORD dwFileSize;     // temporary storage for file sizes
-	DWORD dwFileMapSize;  // size of the file mapping
 	DWORD dwMapViewSize;  // the size of the view
 	DWORD dwFileMapStart; // where to start the file map view
-	DWORD dwSysGran;      // system allocation granularity
-	SYSTEM_INFO SysInfo;  // system information; used to get granularity
-	LPVOID lpMapAddress;  // pointer to the base address of the
-						  // memory-mapped region
-	char * pData;         // pointer to the data
-	LPCTSTR iData;            // on success contains the first int of data
-	int iViewDelta;       // the offset into the view where the data
-						  //shows up
 	__try {
 
 		if (argc == 1) {
@@ -51,15 +37,16 @@ int _tmain(int argc, TCHAR *argv[])
 			__leave;
 		}
 
-		mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
-		if (mutex == NULL) {
-			cout << "WriterProcess: OpenMutex failed with error " << GetLastError() << endl;
+		HANDLE writeEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, writingToMemoryProcessing);
+		HANDLE readEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, readingFromMemoryProcessing);
+
+		if (writeEvent == NULL || readEvent == NULL) {
+			cout << "WriterProcess: OpenEvent failed with error " << GetLastError() << endl;
 			__leave;
 		}
-		cout << "WriterProcess: OpenMutex success" << endl;
-
-		HANDLE writeEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, writingToMemoryProcessing);
-		HANDLE readEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, readingFromMemoryProcessing);
+		else { 
+			cout << "WriterProcess: OpenEvent success" << endl; 
+		}
 
 		HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile == INVALID_HANDLE_VALUE) {
@@ -76,11 +63,7 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 		else cout << "WriterProcess: GetFileSize success" << endl;
 
-
-		GetSystemInfo(&SysInfo);
-		dwSysGran = SysInfo.dwAllocationGranularity;
 		dwFileMapStart = 0;
-		//int fileMapStart = 0;
 		
 		hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
 		if (hMapFile == INVALID_HANDLE_VALUE || hMapFile == NULL) {
@@ -149,14 +132,10 @@ int _tmain(int argc, TCHAR *argv[])
 
 						//write to shared resource
 
-						//unsigned char* buffer = (unsigned char*)pBuf + dwFileMapStart;
 						unsigned char buffer[BUF_SIZE];
 						memcpy(buffer, (unsigned char*)pBuf + dwFileMapStart, bytesToWrite);
-						//unsigned char* buffer = (unsigned char*)pBuf;
 
 						memcpy((PVOID)pBufShared, buffer, bytesToWrite);
-						cout << "buffer: " << buffer << endl;
-						int fileMapStart = (int)dwFileMapStart;
 
 
 						UnmapViewOfFile(pBuf);
@@ -167,10 +146,9 @@ int _tmain(int argc, TCHAR *argv[])
 					}
 
 					__finally {
-						ReleaseMutex(mutex);
 						ResetEvent(writeEvent);
 						SetEvent(readEvent);
-						cout << "WriterProcess: ReleaseMutex successá " << endl;
+						cout << "WriterProcess: Reset events" << endl;
 						SYSTEMTIME st, lt;
 
 						GetSystemTime(&st);
@@ -181,9 +159,6 @@ int _tmain(int argc, TCHAR *argv[])
 
 					}
 					break;
-
-					// The thread got ownership of an abandoned mutex
-					// The database is in an indeterminate state
 				case WAIT_ABANDONED: {
 					cout << "WAIT_ABANDONED" << endl;
 					return FALSE;
@@ -198,14 +173,9 @@ int _tmain(int argc, TCHAR *argv[])
 					cout << "WAIT_TIMEOUT" << endl;
 					return FALSE;
 				}
-
-
 				}
-
-
-
-			}
 		}
+}
 
 	__finally {
 
