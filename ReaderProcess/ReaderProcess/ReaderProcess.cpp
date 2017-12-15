@@ -14,6 +14,9 @@ TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 TCHAR szMsg[];
+TCHAR pos[] = TEXT("Global\\positioninfilekjdnfkvjnskdcndncds");
+TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
+TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
 
 using namespace std;
 
@@ -48,6 +51,9 @@ int _tmain(int argc, TCHAR *argv[])
 			__leave;
 		}
 		cout << "ReaderProcess: OpenMutex success" << endl;
+
+		HANDLE writeEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, writingToMemoryProcessing);
+		HANDLE readEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, readingFromMemoryProcessing);
 
 
 		HANDLE hFileCopy = CreateFile(argv[2], GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS,
@@ -93,6 +99,7 @@ int _tmain(int argc, TCHAR *argv[])
 			FALSE,                 // do not inherit the name
 			sharedMemoryName);               // name of mapping object
 
+
 		if (hSharedMemory == NULL)
 		{
 			cout << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
@@ -100,32 +107,27 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 		else cout << "ReaderProcess: OpenFileMapping success" << endl;
 
-
+		
 		while (dwFileMapStart < dwFileSize) {
-			DWORD dwWaitResult = WaitForSingleObject(mutex, INFINITE);
+			DWORD dwWaitResult = WaitForSingleObject(readEvent, INFINITE);
 			switch (dwWaitResult)
 			{
 				// The thread got ownership of the mutex
 			case WAIT_OBJECT_0:
 				__try {
 					cout << "ReaderProcess: current owner of mutex" << endl;
+					SYSTEMTIME st, lt;
 
-					//dwFileMapStart = (fileMapStart / dwSysGran) * dwSysGran;
+					GetSystemTime(&st);
+					printf("The system time is: %02d:%02d:%02d:%02d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+
 					if (dwFileMapStart + bytesToWrite > dwFileSize) {
 						bytesToWrite = dwFileSize - dwFileMapStart;
 					}
-					cout << "Bytes to write: " << bytesToWrite << endl;
-					//dwMapViewSize = (fileMapStart % dwSysGran) + BUF_SIZE;
 					dwMapViewSize = BUF_SIZE;
 					if (dwMapViewSize > dwFileSize - dwFileMapStart) {
 						dwMapViewSize = dwFileSize - dwFileMapStart;
 					}
-
-					/*else {
-					while (GetLastError() != 0) {
-					mutex = OpenMutex(MUTEX_ALL_ACCESS, false, _T("Global\\mutex")); 
-					}
-					}*/
 
 					pBuf = (LPCTSTR)MapViewOfFile(hSharedMemory, // handle to map object
 						FILE_MAP_ALL_ACCESS,  // read/write permission
@@ -133,17 +135,16 @@ int _tmain(int argc, TCHAR *argv[])
 						0,
 						dwMapViewSize);
 
-					if (pBuf == NULL)
+					unsigned char* buffer = (unsigned char*)pBuf;
+					//memcpy(buffer, pBuf, bytesToWrite);
+					//cout << buffer << endl;
+					if (buffer == NULL)
 					{
-						cerr << "ReaderProcess: buffer is empry, waiting for WriterProcess" << endl;
-						ReleaseMutex(mutex);
-						WaitForSingleObject(mutex, INFINITE);
+						cerr << "ReaderProcess: buffer is empty, waiting for WriterProcess" << endl;
+						//WaitForSingleObject(mutex, INFINITE);
 						continue;
+						//__leave;
 					}
-
-					char buffer[BUF_SIZE];
-					memcpy(buffer, pBuf, bytesToWrite);
-					cout << buffer << endl;
 
 
 					DWORD dwPtr = SetFilePointer(hFileCopy, 0, NULL, FILE_END); //set pointer position to the end of the file
@@ -155,6 +156,7 @@ int _tmain(int argc, TCHAR *argv[])
 					else cout << "ReaderProcess: WriteFile success" << endl;
 
 					UnmapViewOfFile(pBuf);
+					CloseHandle(hSharedMemory);
 					cout << "dwFileMapStart: " << dwFileMapStart << endl;
 					cout << "bytesToWrite: " << bytesToWrite << endl;
 					dwFileMapStart += bytesToWrite;
@@ -162,8 +164,16 @@ int _tmain(int argc, TCHAR *argv[])
 
 				__finally {
 					ReleaseMutex(mutex);
+
+					ResetEvent(readEvent);
+					SetEvent(writeEvent);
+					cout << "ReaderProcess: ReleaseMutex success" << endl;
+					SYSTEMTIME st, lt;
+
+					GetSystemTime(&st);
+					printf("The system time is: %02d:%02d:%02d:%02d\n", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
 					if (GetLastError() != 0) {
-						cout << "ReaderProcess: ReleaseMutex failed with error " << GetLastError() << endl;
+						__leave;
 					}
 
 				}
@@ -179,7 +189,6 @@ int _tmain(int argc, TCHAR *argv[])
 				cout << "WAIT_FAILED, error "<< GetLastError() << endl;
 				return FALSE;
 			}
-
 
 			case WAIT_TIMEOUT: {
 				cout << "WAIT_TIMEOUT" << endl;

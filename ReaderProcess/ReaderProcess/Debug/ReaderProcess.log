@@ -7,5 +7,7 @@ c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\rea
 c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(37): warning C4101: iViewDelta: неиспользованная локальная переменная
 c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(33): warning C4101: lpMapAddress: неиспользованная локальная переменная
 c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(26): warning C4101: dBytesWritten: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(113): warning C4101: lt: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(162): warning C4101: lt: неиспользованная локальная переменная
   ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe
   ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.pdb (Partial PDB)
