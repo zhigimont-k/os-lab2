@@ -1,11 +1,11 @@
-﻿cl : командная строка warning D9028: сбой минимальной повторной сборки, возврат к обычной сборке
-  ReaderProcess.cpp
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(26): warning C4101: dwFileSize: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(34): warning C4101: pData: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(35): warning C4101: iData: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(27): warning C4101: dwFileMapSize: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(36): warning C4101: iViewDelta: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(32): warning C4101: lpMapAddress: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(25): warning C4101: dBytesWritten: неиспользованная локальная переменная
+﻿  ReaderProcess.cpp
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(23): warning C4101: hFileMapping: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(27): warning C4101: dwFileSize: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(35): warning C4101: pData: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(36): warning C4101: iData: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(28): warning C4101: dwFileMapSize: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(37): warning C4101: iViewDelta: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(33): warning C4101: lpMapAddress: неиспользованная локальная переменная
+c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(26): warning C4101: dBytesWritten: неиспользованная локальная переменная
   ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe
   ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.pdb (Partial PDB)

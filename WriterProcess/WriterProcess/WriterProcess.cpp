@@ -14,8 +14,9 @@ using namespace std;
 
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
-TCHAR mutexName[] = TEXT("Global\\MyMutex");
+TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 //TCHAR globalMutex[] = TEXT("Global\\globalMutex");
+
 
 using namespace std;
 
@@ -25,6 +26,7 @@ int _tmain(int argc, TCHAR *argv[])
 	int bytesToWrite = BUF_SIZE;
 	HANDLE hMapFile;
 	LPCTSTR pBuf;
+	LPCTSTR pBufShared;
 	HANDLE mutex;
 	DWORD dBytesWritten;  // number of bytes written
 	DWORD dwFileSize;     // temporary storage for file sizes
@@ -47,7 +49,7 @@ int _tmain(int argc, TCHAR *argv[])
 		}
 
 		mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
-		if (mutex == INVALID_HANDLE_VALUE) {
+		if (mutex == NULL) {
 			cout << "WriterProcess: OpenMutex failed with error " << GetLastError() << endl;
 			__leave;
 		}
@@ -76,7 +78,19 @@ int _tmain(int argc, TCHAR *argv[])
 		//int fileMapStart = 0;
 		
 		hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
-		if (hMapFile == INVALID_HANDLE_VALUE) {
+		if (hMapFile == INVALID_HANDLE_VALUE || hMapFile == NULL) {
+			cout << "WriterProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			__leave;
+		}
+		else cout << "WriterProcess: OpenFileMapping success" << endl;
+
+		HANDLE hSharedMemory = OpenFileMapping(
+			FILE_MAP_ALL_ACCESS,   // read/write access
+			FALSE,                 // do not inherit the name
+			sharedMemoryName);               // name of mapping object
+
+		if (hSharedMemory == NULL)
+		{
 			cout << "WriterProcess: OpenFileMapping failed with error " << GetLastError() << endl;
 			__leave;
 		}
@@ -115,7 +129,26 @@ int _tmain(int argc, TCHAR *argv[])
 						}
 						else cout << "WriterProcess: MapViewOfFile success" << endl;
 
+						pBufShared = (LPCTSTR)MapViewOfFile(hSharedMemory,
+							FILE_MAP_ALL_ACCESS,
+							0,
+							0,
+							dwMapViewSize);
+						if (pBufShared == NULL) {
+							cerr << "WriterProcess: MapViewOfFile failed with error" << GetLastError() << endl;
+							CloseHandle(hMapFile);
+							__leave;
+						}
+						else cout << "WriterProcess: MapViewOfFile success" << endl;
+
 						//write to shared resource
+
+						char buffer[BUF_SIZE];
+						memcpy(buffer, pBuf, bytesToWrite);
+
+						cout << "buffer: " << buffer << endl;
+						memcpy((PVOID)pBufShared, buffer, bytesToWrite);
+
 
 						UnmapViewOfFile(pBuf);
 						cout << "dwFileMapStart: " << dwFileMapStart << endl;
@@ -127,7 +160,9 @@ int _tmain(int argc, TCHAR *argv[])
 						ReleaseMutex(mutex);
 						if (GetLastError() != 0) {
 							cout << "WriterProcess: ReleaseMutex failed with error " << GetLastError() << endl;
+							__leave;
 						}
+
 					}
 					break;
 
@@ -137,6 +172,18 @@ int _tmain(int argc, TCHAR *argv[])
 					cout << "WAIT_ABANDONED" << endl;
 					return FALSE;
 				}
+
+				case WAIT_FAILED: {
+					cout << "WAIT_FAILED, error " << GetLastError() << endl;
+					return FALSE;
+				}
+
+				case WAIT_TIMEOUT: {
+					cout << "WAIT_TIMEOUT" << endl;
+					return FALSE;
+				}
+
+
 				}
 
 

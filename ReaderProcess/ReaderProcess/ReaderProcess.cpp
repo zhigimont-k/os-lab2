@@ -11,8 +11,9 @@
 
 #define BUF_SIZE 4096
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR mutexName[] = TEXT("Global\\MyMutex");
+TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
+TCHAR szMsg[];
 
 using namespace std;
 
@@ -42,7 +43,7 @@ int _tmain(int argc, TCHAR *argv[])
 		if (argc == 1) { cout << "Couldn't retrieve command line arguments" << endl; __leave; }
 
 		mutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
-		if (mutex == INVALID_HANDLE_VALUE) {
+		if (mutex == NULL) {
 			cout << "ReaderProcess: OpenMutex failed with error " << GetLastError() << endl;
 			__leave;
 		}
@@ -75,7 +76,7 @@ int _tmain(int argc, TCHAR *argv[])
 		dwFileMapStart = 0;
 		int fileMapStart = 0; 
 		
-		hFileMapping = OpenFileMapping(
+		/*hFileMapping = OpenFileMapping(
 			FILE_MAP_ALL_ACCESS,   // read/write access
 			FALSE,                 // do not inherit the name
 			szName);               // name of mapping object
@@ -85,7 +86,7 @@ int _tmain(int argc, TCHAR *argv[])
 			cout << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
 			__leave;
 		}
-		else cout << "ReaderProcess: OpenFileMapping success" << endl;
+		else cout << "ReaderProcess: OpenFileMapping success" << endl;*/
 
 		HANDLE hSharedMemory = OpenFileMapping(
 			FILE_MAP_ALL_ACCESS,   // read/write access
@@ -107,7 +108,7 @@ int _tmain(int argc, TCHAR *argv[])
 				// The thread got ownership of the mutex
 			case WAIT_OBJECT_0:
 				__try {
-					cout << "WriterProcess: current owner of mutex" << endl;
+					cout << "ReaderProcess: current owner of mutex" << endl;
 
 					//dwFileMapStart = (fileMapStart / dwSysGran) * dwSysGran;
 					if (dwFileMapStart + bytesToWrite > dwFileSize) {
@@ -130,21 +131,23 @@ int _tmain(int argc, TCHAR *argv[])
 						FILE_MAP_ALL_ACCESS,  // read/write permission
 						0,
 						0,
-						BUF_SIZE);
+						dwMapViewSize);
 
 					if (pBuf == NULL)
 					{
-						cerr << "ReaderProcess: MapViewOfFile failed with error " << GetLastError() << endl;
-						UnmapViewOfFile(pBuf);
-						__leave;
+						cerr << "ReaderProcess: buffer is empry, waiting for WriterProcess" << endl;
+						ReleaseMutex(mutex);
+						WaitForSingleObject(mutex, INFINITE);
+						continue;
 					}
 
 					char buffer[BUF_SIZE];
 					memcpy(buffer, pBuf, bytesToWrite);
+					cout << buffer << endl;
 
 
 					DWORD dwPtr = SetFilePointer(hFileCopy, 0, NULL, FILE_END); //set pointer position to the end of the file
-					bool success = WriteFile(hFileCopy, sharedMemoryName, bytesToWrite, &dwPtr, 0);
+					bool success = WriteFile(hFileCopy, buffer, bytesToWrite, &dwPtr, 0);
 					if (!success) {
 						cerr << "ReaderProcess: WriteFile failed with error " << GetLastError() << endl;
 						__leave;
@@ -162,6 +165,7 @@ int _tmain(int argc, TCHAR *argv[])
 					if (GetLastError() != 0) {
 						cout << "ReaderProcess: ReleaseMutex failed with error " << GetLastError() << endl;
 					}
+
 				}
 				break;
 
@@ -169,6 +173,16 @@ int _tmain(int argc, TCHAR *argv[])
 				// The database is in an indeterminate state
 			case WAIT_ABANDONED: {
 				cout << "WAIT_ABANDONED" << endl;
+				return FALSE;
+			}
+			case WAIT_FAILED: {
+				cout << "WAIT_FAILED, error "<< GetLastError() << endl;
+				return FALSE;
+			}
+
+
+			case WAIT_TIMEOUT: {
+				cout << "WAIT_TIMEOUT" << endl;
 				return FALSE;
 			}
 			}

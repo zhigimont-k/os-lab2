@@ -12,7 +12,7 @@
 
 using namespace std;
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR mutexName[] = TEXT("Global\\MyMutex");
+TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 
 int _tmain()
@@ -40,11 +40,16 @@ int _tmain()
 	}
 	else cout << "MainProcess: CreateMainProcess success" << endl;
 
-	mutex = CreateMutex(0, TRUE, mutexName);
-	if (mutex == INVALID_HANDLE_VALUE) {
+	mutex = CreateMutex(0, FALSE, mutexName);
+	if (mutex == INVALID_HANDLE_VALUE || mutex == NULL) {
 		cout << "MainProcess: CreateMutex failed with error " << GetLastError() << endl;
 	}
 	else cout << "MainProcess: CreateMutex success" << endl;
+	HANDLE fuckingtest = OpenMutex(MUTEX_ALL_ACCESS, FALSE, mutexName);
+	if (fuckingtest == INVALID_HANDLE_VALUE || fuckingtest == NULL) {
+		cout << "MainProcess: OpenMutex failed with error " << GetLastError() << endl;
+	}
+	else cout << "MainProcess: OpenMutex success" << endl;
 
 	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -65,6 +70,7 @@ int _tmain()
 		cout << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
 	else cout << "MainProcess: CreateFileMapping success" << endl;
+
 
 
 	//add batnik
