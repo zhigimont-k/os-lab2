@@ -4,7 +4,6 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
-#include <cstdio>
 #include <stdlib.h>
 #include <strsafe.h>
 #include <conio.h>
@@ -16,11 +15,9 @@ TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
-TCHAR writerPath[] = TEXT("..\\..\\writerProcess.bat");
-TCHAR readerPath[] = TEXT("..\\..\\readerProcess.bat");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
 
-int _tmain(int argc, TCHAR *argv[])
+int _tmain()
 {
 	PROCESS_INFORMATION piWriter, piReader;
 	STARTUPINFO si = { sizeof(si) };
@@ -35,37 +32,28 @@ int _tmain(int argc, TCHAR *argv[])
 	saThread.lpSecurityDescriptor = NULL;
 	saThread.bInheritHandle = FALSE;
 	ofstream logfile;
-	logfile.open("mainLog.txt");
-
-	if (argc < 3) {
-		logfile << "Not enough arguments" << endl;
-	}
-
-	TCHAR *fileNameArgs[2];
-	fileNameArgs[0] = argv[1];
-	fileNameArgs[1] = argv[2];
-	TCHAR *readerArgs;
-	wsprintf(readerArgs, fileNameArgs[0], _T(" "), fileNameArgs[1]);
-	cout << readerArgs << endl;
+	logfile.open("..\\..\\mainLog.txt");
 
 	logfile << "->Start of parent execution." << endl;
-	
-	HANDLE hWriterEvent = CreateEvent(NULL, TRUE, TRUE, writingToMemoryProcessing);
-	HANDLE hReaderEvent = CreateEvent(NULL, TRUE, FALSE, readingFromMemoryProcessing);
-	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
+
+	// EVENTS CREATION
+	HANDLE events[2];
+	events[0] = CreateEvent(NULL, TRUE, TRUE, writingToMemoryProcessing);
+	events[1] = CreateEvent(NULL, TRUE, FALSE, readingFromMemoryProcessing);
+	if (events[0] == INVALID_HANDLE_VALUE || events[1] == INVALID_HANDLE_VALUE) {
 		logfile << "MainProcess: CreateEvent failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateEvent success" << endl;
-	hWriterEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, writingToMemoryProcessing);
-	hReaderEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, readingFromMemoryProcessing);
-	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
+	events[0] = OpenEvent(EVENT_ALL_ACCESS, FALSE, writingToMemoryProcessing);
+	events[1] = OpenEvent(EVENT_ALL_ACCESS, FALSE, readingFromMemoryProcessing);
+	if (events[0] == INVALID_HANDLE_VALUE || events[1] == INVALID_HANDLE_VALUE) {
 		logfile << "MainProcess: OpenEvent failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: OpenEvent success" << endl;
 
-	HANDLE hFile = CreateFile(fileNameArgs[0], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		logfile << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
+		cerr << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateFile success" << endl;
 
@@ -93,17 +81,28 @@ int _tmain(int argc, TCHAR *argv[])
 	}
 	else logfile << "MainProcess: CreateFileMapping success" << endl;
 	
-
-	if ( !CreateProcess(writerPath, fileNameArgs[0], &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) ||
-		!CreateProcess(readerPath, readerArgs, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
+	if (!CreateProcess(_T("..\\..\\WriterProcess\\Debug\\WriterProcess.exe"), L" D://test.docx", &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siWriter, &piWriter) ||
+		!CreateProcess(_T("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe"), L" D://test.docx D://copy.docx", &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siReader, &piReader)) {
 		logfile << "CreateChildProcesses failed" << endl;
 	}
-	else { 
+	else {
 		logfile << "CreateWriterProcess success" << endl << "CreateReaderProcess success" << endl;
 	}
+
+
+
 	logfile << "->End of parent execution." << endl;
 
+	DWORD dwWaitResult = WaitForMultipleObjects(2, events, TRUE, INFINITE);
+	switch (dwWaitResult) {
+	case WAIT_OBJECT_0: {
+		logfile << "MainProcess: child processes finished successfully" << endl;
+		cout << "Done!" << endl;
+	}
+	}
 	logfile.close();
+	CloseHandle(hMapFile);
+	CloseHandle(hSharedMemory);
 	CloseHandle(piWriter.hProcess);
 	CloseHandle(piWriter.hThread);
 	CloseHandle(piReader.hProcess);
@@ -112,4 +111,3 @@ int _tmain(int argc, TCHAR *argv[])
 	getchar();
 	return 0;
 }
-

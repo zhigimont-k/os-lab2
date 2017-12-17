@@ -1,0 +1,11 @@
+->Start of parent execution.
+MainProcess: CreateEvent success
+MainProcess: OpenEvent success
+MainProcess: CreateFile success
+MainProcess: CreateFileMapping failed with error 183
+MainProcess: CreateFileMapping failed with error 183
+MainProcess: CreateFileMapping failed with error 183
+CreateWriterProcess success
+CreateReaderProcess success
+->End of parent execution.
+MainProcess: child processes finished successfully

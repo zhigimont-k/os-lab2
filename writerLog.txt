@@ -1,0 +1,333 @@
+WriterProcess: OpenEvent success
+WriterProcess: CreateFile success
+WriterProcess: GetFileSize success
+WriterProcess: OpenFileMapping success
+WriterProcess: OpenFileMapping success
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:575
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 0
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:575
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:597
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 4096
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:598
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:598
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 8192
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:598
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:598
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 12288
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:599
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:599
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 16384
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:599
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:599
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 20480
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:600
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:600
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 24576
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:600
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:600
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 28672
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:601
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:601
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 32768
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:601
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:601
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 36864
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:602
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:602
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 40960
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:602
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:602
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 45056
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:603
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:603
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 49152
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:603
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:603
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 53248
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:604
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:604
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 57344
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:604
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:604
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 61440
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:605
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:605
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 65536
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:605
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:605
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 69632
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:606
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:606
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 73728
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:606
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:607
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 77824
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:607
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:607
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 81920
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:607
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:608
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 86016
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:608
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:608
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 90112
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:608
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:609
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 94208
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:609
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:609
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 98304
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:609
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:609
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 102400
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:610
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:610
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 106496
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:610
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:611
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 110592
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:611
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:611
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 114688
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:611
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:611
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 118784
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:612
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:612
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 122880
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:612
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:612
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 126976
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:613
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:613
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 131072
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:613
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:614
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 135168
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:614
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:614
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 139264
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:614
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:614
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 143360
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:615
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:615
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 147456
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:615
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:615
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 151552
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:616
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:616
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 155648
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:616
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:616
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 159744
+bytesToWrite: 4096
+WriterProcess: Reset events
+The system time is: :19:56:19:617
+WriterProcess: current owner of mutex
+The system time is: :19:56:19:617
+WriterProcess: MapViewOfFile success
+WriterProcess: MapViewOfFile success
+dwFileMapStart: 163840
+bytesToWrite: 661
+WriterProcess: Reset events
+The system time is: :19:56:19:617

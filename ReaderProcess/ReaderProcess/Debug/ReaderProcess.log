@@ -1,5 +1,2 @@
 ﻿  ReaderProcess.cpp
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(90): warning C4101: lt: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\readerprocess\readerprocess\readerprocess.cpp(130): warning C4101: lt: неиспользованная локальная переменная
-  ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe
-  ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.pdb (Partial PDB)
+LINK : fatal error LNK1168: не удается открыть C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe для записи

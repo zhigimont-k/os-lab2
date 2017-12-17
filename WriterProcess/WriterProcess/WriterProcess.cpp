@@ -30,14 +30,12 @@ int _tmain(int argc, TCHAR *argv[])
 	LPCTSTR pBufShared;
 	DWORD dwMapViewSize;  // the size of the view
 	DWORD dwFileMapStart; // where to start the file map view
-
 	ofstream logfile;
-	logfile.open("writerLog.txt");
-	__try {
+	logfile.open("..\\..\\writerLog.txt");
 
 		if (argc == 1) {
 			logfile << "Couldn't retrieve command line arguments" << endl;
-			__leave;
+			return 0;
 		}
 
 		HANDLE writeEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, writingToMemoryProcessing);
@@ -45,9 +43,9 @@ int _tmain(int argc, TCHAR *argv[])
 
 		if (writeEvent == NULL || readEvent == NULL) {
 			logfile << "WriterProcess: OpenEvent failed with error " << GetLastError() << endl;
-			__leave;
+			return 0;
 		}
-		else { 
+		else {
 			logfile << "WriterProcess: OpenEvent success" << endl;
 		}
 
@@ -55,23 +53,23 @@ int _tmain(int argc, TCHAR *argv[])
 		if (hFile == INVALID_HANDLE_VALUE) {
 			logfile << "CreateFile failed with error " << GetLastError() << endl;
 			CloseHandle(hFile);
-			__leave;
+			return 0;
 		}
 		else logfile << "WriterProcess: CreateFile success" << endl;
 		DWORD dwFileSize = GetFileSize(hFile, nullptr);
 		if (dwFileSize == INVALID_FILE_SIZE || dwFileSize == 0) {
 			logfile << "GetFileSize failed with error" << GetLastError() << endl;
 			CloseHandle(hFile);
-			__leave;
+			return 0;
 		}
 		else logfile << "WriterProcess: GetFileSize success" << endl;
 
 		dwFileMapStart = 0;
-		
+
 		hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
 		if (hMapFile == INVALID_HANDLE_VALUE || hMapFile == NULL) {
 			logfile << "WriterProcess: OpenFileMapping failed with error " << GetLastError() << endl;
-			__leave;
+			return 0;
 		}
 		else logfile << "WriterProcess: OpenFileMapping success" << endl;
 
@@ -83,110 +81,101 @@ int _tmain(int argc, TCHAR *argv[])
 		if (hSharedMemory == NULL)
 		{
 			logfile << "WriterProcess: OpenFileMapping failed with error " << GetLastError() << endl;
-			__leave;
+			return 0;
 		}
 		else logfile << "WriterProcess: OpenFileMapping success" << endl;
 
-		
+
 		while (dwFileMapStart < dwFileSize) {
-				DWORD dwWaitResult = WaitForSingleObject(writeEvent, INFINITE);
-				switch (dwWaitResult)
-				{
-					// The thread got ownership of the mutex
-				case WAIT_OBJECT_0:
-					__try {
-						logfile << "WriterProcess: active" << endl;
-						SYSTEMTIME st;
+			DWORD dwWaitResult = WaitForSingleObject(writeEvent, INFINITE);
+			switch (dwWaitResult)
+			{
+				// The thread got ownership of the mutex
+			case WAIT_OBJECT_0:{
+				logfile << "WriterProcess: current owner of mutex" << endl;
+					SYSTEMTIME st;
 
-						GetSystemTime(&st);
-						logfile << "The system time is: " << st.wHour << ":" << st.wMinute << ":" << st.wSecond << ":" << st.wMilliseconds << endl;
-						if (dwFileMapStart + bytesToWrite > dwFileSize) {
-							bytesToWrite = dwFileSize - dwFileMapStart;
-						}
-						dwMapViewSize = BUF_SIZE;
-						if (dwMapViewSize > dwFileSize - dwFileMapStart) {
-							dwMapViewSize = dwFileSize - dwFileMapStart;
-						}
+					GetSystemTime(&st);
+					logfile << "The system time is: " << st.wHour << ":" << st.wMinute << ":" << st.wSecond << ":" << st.wMilliseconds << endl;
 
-
-						pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
-							FILE_MAP_ALL_ACCESS,
-							0,
-							0,
-							dwFileSize);
-						if (pBuf == NULL) {
-							logfile << "WriterProcess: MapViewOfFile failed with error" << GetLastError() << endl;
-							CloseHandle(hMapFile);
-							__leave;
-						}
-						else logfile << "WriterProcess: MapViewOfFile success" << endl;
-
-
-						pBufShared = (LPCTSTR)MapViewOfFile(hSharedMemory,
-							FILE_MAP_ALL_ACCESS,
-							0,
-							0,
-							dwMapViewSize);
-						if (pBufShared == NULL) {
-							logfile << "WriterProcess: MapViewOfFile failed with error " << GetLastError() << endl;
-							CloseHandle(hMapFile);
-							__leave;
-						}
-						else logfile << "WriterProcess: MapViewOfFile success" << endl;
-
-						//write to shared resource
-
-						unsigned char buffer[BUF_SIZE];
-						memcpy(buffer, (unsigned char*)pBuf + dwFileMapStart, bytesToWrite);
-
-						memcpy((PVOID)pBufShared, buffer, bytesToWrite);
-
-
-						UnmapViewOfFile(pBuf);
-						//UnmapViewOfFile(pBufShared);
-						logfile << "dwFileMapStart: " << dwFileMapStart << endl;
-						logfile << "bytesToWrite: " << bytesToWrite << endl;
-						dwFileMapStart += bytesToWrite;
+					if (dwFileMapStart + bytesToWrite > dwFileSize) {
+						bytesToWrite = dwFileSize - dwFileMapStart;
+					}
+					dwMapViewSize = BUF_SIZE;
+					if (dwMapViewSize > dwFileSize - dwFileMapStart) {
+						dwMapViewSize = dwFileSize - dwFileMapStart;
 					}
 
-					__finally {
-						ResetEvent(writeEvent);
-						SetEvent(readEvent);
-						logfile << "WriterProcess: Reset events" << endl;
-						SYSTEMTIME st;
-
-						GetSystemTime(&st);
-						logfile << "The system time is: " << st.wHour << ":" << st.wMinute << ":" << st.wSecond << ":" << st.wMilliseconds << endl;
-						if (GetLastError() != 0) {
-							__leave;
-						}
-
+					pBuf = (LPCTSTR)MapViewOfFile(hMapFile,
+						FILE_MAP_ALL_ACCESS,
+						0,
+						0,
+						dwFileSize);
+					if (pBuf == NULL) {
+						logfile << "WriterProcess: MapViewOfFile failed with error" << GetLastError() << endl;
+						CloseHandle(hMapFile);
+						return 0;
 					}
-					break;
-				case WAIT_ABANDONED: {
-					logfile << "WAIT_ABANDONED" << endl;
-					return FALSE;
-				}
+					else logfile << "WriterProcess: MapViewOfFile success" << endl;
 
-				case WAIT_FAILED: {
-					logfile << "WAIT_FAILED, error " << GetLastError() << endl;
-					return FALSE;
-				}
+					pBufShared = (LPCTSTR)MapViewOfFile(hSharedMemory,
+						FILE_MAP_ALL_ACCESS,
+						0,
+						0,
+						dwMapViewSize);
+					if (pBufShared == NULL) {
+						logfile << "WriterProcess: MapViewOfFile failed with error " << GetLastError() << endl;
+						CloseHandle(hMapFile);
+						return 0;
+					}
+					else logfile << "WriterProcess: MapViewOfFile success" << endl;
 
-				case WAIT_TIMEOUT: {
-					logfile << "WAIT_TIMEOUT" << endl;
-					return FALSE;
+					//write to shared resource
+
+					unsigned char buffer[BUF_SIZE];
+					memcpy(buffer, (unsigned char*)pBuf + dwFileMapStart, bytesToWrite);
+
+					memcpy((PVOID)pBufShared, buffer, bytesToWrite);
+
+
+					UnmapViewOfFile(pBuf);
+					//UnmapViewOfFile(pBufShared);
+					logfile << "dwFileMapStart: " << dwFileMapStart << endl;
+					logfile << "bytesToWrite: " << bytesToWrite << endl;
+					dwFileMapStart += bytesToWrite;
+					ResetEvent(writeEvent);
+					SetEvent(readEvent);
+					logfile << "WriterProcess: Reset events" << endl;
+
+					GetSystemTime(&st);
+
+					logfile << "The system time is: " << ":" << st.wHour << ":" << st.wMinute << ":" << st.wSecond << ":" << st.wMilliseconds << endl;
+					if (GetLastError() != 0) {
+						return 0;
+					}
+
+				break;
 				}
-				}
+			case WAIT_ABANDONED: {
+				logfile << "WAIT_ABANDONED" << endl;
+				return FALSE;
+			}
+
+			case WAIT_FAILED: {
+				logfile << "WAIT_FAILED, error " << GetLastError() << endl;
+				return FALSE;
+			}
+
+			case WAIT_TIMEOUT: {
+				logfile << "WAIT_TIMEOUT" << endl;
+				return FALSE;
+			}
+			}
 		}
-}
+	
 
-	__finally {
-		logfile.close();
 		getchar();
 		return 0;
-	}
 
 }
-
 

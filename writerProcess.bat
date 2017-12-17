@@ -1,1 +1,0 @@
-start C:/Users/Karina/source/repos/ConsoleApplication1/WriterProcess/Debug/WriterProcess.exe 

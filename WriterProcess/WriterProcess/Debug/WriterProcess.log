@@ -1,6 +1,2 @@
 ﻿  WriterProcess.cpp
-c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(96): warning C4101: lt: неиспользованная локальная переменная
-c:\users\karina\source\repos\consoleapplication1\writerprocess\writerprocess\writerprocess.cpp(154): warning C4101: lt: неиспользованная локальная переменная
-cl : командная строка warning D9028: сбой минимальной повторной сборки, возврат к обычной сборке
-  WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.exe
-  WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.pdb (Partial PDB)
+LINK : fatal error LNK1168: не удается открыть C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.exe для записи
