@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <strsafe.h>
 #include <conio.h>
@@ -12,22 +13,20 @@
 
 using namespace std;
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
-TCHAR pos[] = TEXT("Global\\positioninfilekjdnfkvjnskdcndncds");
 
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
+TCHAR writerPath[] = TEXT("..\\..\\writerProcess.bat");
+TCHAR readerPath[] = TEXT("..\\..\\readerProcess.bat");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
 
-int _tmain()
+int _tmain(int argc, TCHAR *argv[])
 {
-	PROCESS_INFORMATION pi, piWriter, piReader;
-	HANDLE mutex;
+	PROCESS_INFORMATION piWriter, piReader;
 	STARTUPINFO si = { sizeof(si) };
 	STARTUPINFO siWriter = { sizeof(siWriter) };
 	STARTUPINFO siReader = { sizeof(siReader) };
 	SECURITY_ATTRIBUTES saProcess, saThread;
-	TCHAR szPath[] = TEXT("cmd.exe");
 	ZeroMemory(&si, sizeof(si));
 	saProcess.nLength = sizeof(saProcess);
 	saProcess.lpSecurityDescriptor = NULL;
@@ -35,87 +34,80 @@ int _tmain()
 	saThread.nLength = sizeof(saThread);
 	saThread.lpSecurityDescriptor = NULL;
 	saThread.bInheritHandle = FALSE;
+	ofstream logfile;
+	logfile.open("mainLog.txt");
 
-	cout << "->Start of parent execution." << endl;
-	boolean success = CreateProcess(NULL, szPath, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
-	if (!success) {
-		cerr << "MainProcess: CreateMainProcess failed with error" << GetLastError() << endl;
-		cout << GetLastError() << endl;
+	if (argc < 3) {
+		logfile << "Not enough arguments" << endl;
 	}
-	else cout << "MainProcess: CreateMainProcess success" << endl;
+
+	TCHAR *fileNameArgs[2];
+	fileNameArgs[0] = argv[1];
+	fileNameArgs[1] = argv[2];
+	TCHAR *readerArgs;
+	wsprintf(readerArgs, fileNameArgs[0], _T(" "), fileNameArgs[1]);
+	cout << readerArgs << endl;
+
+	logfile << "->Start of parent execution." << endl;
 	
-	// EVENTS CREATION
 	HANDLE hWriterEvent = CreateEvent(NULL, TRUE, TRUE, writingToMemoryProcessing);
 	HANDLE hReaderEvent = CreateEvent(NULL, TRUE, FALSE, readingFromMemoryProcessing);
 	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
-		cout << "MainProcess: CreateEvent failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateEvent failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: CreateEvent success" << endl;
+	else logfile << "MainProcess: CreateEvent success" << endl;
 	hWriterEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, writingToMemoryProcessing);
 	hReaderEvent = OpenEvent(EVENT_ALL_ACCESS, FALSE, readingFromMemoryProcessing);
 	if (hWriterEvent == INVALID_HANDLE_VALUE || hReaderEvent == INVALID_HANDLE_VALUE) {
-		cout << "MainProcess: OpenEvent failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: OpenEvent failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: OpenEvent success" << endl;
+	else logfile << "MainProcess: OpenEvent success" << endl;
 
-	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(fileNameArgs[0], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: CreateFile success" << endl;
+	else logfile << "MainProcess: CreateFile success" << endl;
 
 	DWORD dwFileSize = GetFileSize(hFile, nullptr);
 
 	HANDLE hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
 		szName);
 	if (GetLastError() != 0) {
-		cout << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: CreateFileMapping success" << endl;
+	else logfile << "MainProcess: CreateFileMapping success" << endl;
 
 	hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, szName);
 
 	HANDLE hSharedMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, BUF_SIZE,
 		sharedMemoryName);
 	if (GetLastError() != 0) {
-		cout << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: CreateFileMapping success" << endl;
+	else logfile << "MainProcess: CreateFileMapping success" << endl;
 
 	hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, sharedMemoryName);
 	if (GetLastError() != 0) {
-		cout << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
-	else cout << "MainProcess: CreateFileMapping success" << endl;
-
-
-
-
+	else logfile << "MainProcess: CreateFileMapping success" << endl;
 	
 
-	//add batnik
-	//two shared memory objects (one for file, one for sharing between processes)
-	//fix opening shared memory
-
-
-	if ( !CreateProcess(_T("..\\..\\WriterProcess\\Debug\\WriterProcess.exe"), L" D://test.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) || 
-		!CreateProcess(_T("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe"), L" D://test.docx D://copy.docx", &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
-		cerr << "CreateChildProcesses failed" << endl;
+	if ( !CreateProcess(writerPath, fileNameArgs[0], &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) ||
+		!CreateProcess(readerPath, readerArgs, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
+		logfile << "CreateChildProcesses failed" << endl;
 	}
 	else { 
-		cout << "CreateWriterProcess success" << endl << "CreateReaderProcess success" << endl;
+		logfile << "CreateWriterProcess success" << endl << "CreateReaderProcess success" << endl;
 	}
+	logfile << "->End of parent execution." << endl;
 
-
-
-	cout << "->End of parent execution." << endl;
-
+	logfile.close();
 	CloseHandle(piWriter.hProcess);
 	CloseHandle(piWriter.hThread);
 	CloseHandle(piReader.hProcess);
 	CloseHandle(piReader.hThread);
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
 
 	getchar();
 	return 0;
