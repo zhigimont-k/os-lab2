@@ -5,6 +5,7 @@
 #include <tchar.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <strsafe.h>
 #include <conio.h>
 
@@ -13,11 +14,13 @@
 using namespace std;
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
+TCHAR writerPath[] = TEXT("..\\..\\WriterProcess\\Debug\\WriterProcess.exe");
+TCHAR readerPath[] = TEXT("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe");
 
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
 
-int _tmain()
+int _tmain(int argc, TCHAR *argv[])
 {
 	PROCESS_INFORMATION piWriter, piReader;
 	STARTUPINFO si = { sizeof(si) };
@@ -33,6 +36,11 @@ int _tmain()
 	saThread.bInheritHandle = FALSE;
 	ofstream logfile;
 	logfile.open("..\\..\\mainLog.txt");
+
+	if (argc < 3) {
+		logfile << "Not enough arguments" << endl;
+		//return 0;
+	}
 
 	logfile << "->Start of parent execution." << endl;
 
@@ -51,9 +59,9 @@ int _tmain()
 	}
 	else logfile << "MainProcess: OpenEvent success" << endl;
 
-	HANDLE hFile = CreateFile(L"D://test.docx", GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFile(argv[1], GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		cerr << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
+		logfile << "MainProcess: CreateFile failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateFile success" << endl;
 
@@ -61,7 +69,7 @@ int _tmain()
 
 	HANDLE hMapFile = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0,
 		szName);
-	if (GetLastError() != 0) {
+	if (hMapFile == NULL) {
 		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateFileMapping success" << endl;
@@ -70,19 +78,19 @@ int _tmain()
 
 	HANDLE hSharedMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, BUF_SIZE,
 		sharedMemoryName);
-	if (GetLastError() != 0) {
+	if (hSharedMemory == NULL) {
 		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateFileMapping success" << endl;
 
 	hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, sharedMemoryName);
-	if (GetLastError() != 0) {
+	if (hMapFile == NULL) {
 		logfile << "MainProcess: CreateFileMapping failed with error " << GetLastError() << endl;
 	}
 	else logfile << "MainProcess: CreateFileMapping success" << endl;
 	
-	if (!CreateProcess(_T("..\\..\\WriterProcess\\Debug\\WriterProcess.exe"), L" D://test.docx", &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siWriter, &piWriter) ||
-		!CreateProcess(_T("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe"), L" D://test.docx D://copy.docx", &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siReader, &piReader)) {
+	if (!CreateProcess(NULL, writerPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siWriter, &piWriter) ||
+		!CreateProcess(NULL, readerPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siReader, &piReader)) {
 		logfile << "CreateChildProcesses failed" << endl;
 	}
 	else {
@@ -91,7 +99,6 @@ int _tmain()
 
 
 
-	logfile << "->End of parent execution." << endl;
 
 	DWORD dwWaitResult = WaitForMultipleObjects(2, events, TRUE, INFINITE);
 	switch (dwWaitResult) {
@@ -108,6 +115,7 @@ int _tmain()
 	CloseHandle(piReader.hProcess);
 	CloseHandle(piReader.hThread);
 
+	logfile << "->End of parent execution." << endl;
 	getchar();
 	return 0;
 }

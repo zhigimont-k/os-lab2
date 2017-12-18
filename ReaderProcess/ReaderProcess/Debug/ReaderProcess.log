@@ -1,2 +1,2 @@
-﻿  ReaderProcess.cpp
-LINK : fatal error LNK1168: не удается открыть C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe для записи
+﻿  ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.exe
+  ReaderProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\ReaderProcess\Debug\ReaderProcess.pdb (Partial PDB)

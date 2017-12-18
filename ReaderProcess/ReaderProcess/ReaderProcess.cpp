@@ -11,7 +11,6 @@
 
 #define BUF_SIZE 4096
 TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
-TCHAR mutexName[] = TEXT("Global\\mutexwithuniquename87458u568u45y69546");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
