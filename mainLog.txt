@@ -8,3 +8,4 @@ MainProcess: CreateFileMapping success
 CreateWriterProcess success
 CreateReaderProcess success
 MainProcess: child processes finished successfully
+->End of parent execution.

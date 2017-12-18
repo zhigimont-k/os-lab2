@@ -52,6 +52,7 @@ int _tmain(int argc, TCHAR *argv[])
 		StringCchCat(readerArg, STRSAFE_MAX_CCH, argv[1]);
 		StringCchCat(readerArg, STRSAFE_MAX_CCH, _T(" "));
 		StringCchCat(readerArg, STRSAFE_MAX_CCH, argv[2]);
+
 	}
 
 	logfile << "->Start of parent execution." << endl;
@@ -119,7 +120,6 @@ int _tmain(int argc, TCHAR *argv[])
 		cout << "Done!" << endl;
 	}
 	}
-	logfile.close();
 	CloseHandle(hMapFile);
 	CloseHandle(hSharedMemory);
 	CloseHandle(piWriter.hProcess);
@@ -128,6 +128,7 @@ int _tmain(int argc, TCHAR *argv[])
 	CloseHandle(piReader.hThread);
 
 	logfile << "->End of parent execution." << endl;
+	logfile.close();
 	getchar();
 	return 0;
 }

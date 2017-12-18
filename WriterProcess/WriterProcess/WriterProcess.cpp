@@ -172,7 +172,11 @@ int _tmain(int argc, TCHAR *argv[])
 			}
 			}
 		}
-	
+		logfile.close();
+		CloseHandle(hSharedMemory);
+		CloseHandle(hMapFile);
+		CloseHandle(writeEvent);
+		CloseHandle(readEvent);
 		return 0;
 
 }

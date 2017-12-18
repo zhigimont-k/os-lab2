@@ -77,6 +77,7 @@ int _tmain(int argc, TCHAR *argv[])
 		if (hSharedMemory == NULL)
 		{
 			logfile << "ReaderProcess: OpenFileMapping failed with error " << GetLastError() << endl;
+			CloseHandle(hSharedMemory);
 			return 0;
 		}
 		else logfile << "ReaderProcess: OpenFileMapping success" << endl;
@@ -117,7 +118,6 @@ int _tmain(int argc, TCHAR *argv[])
 				else logfile << "ReaderProcess: WriteFile success" << endl;
 
 				UnmapViewOfFile(pBuf);
-				//CloseHandle(hSharedMemory);
 				logfile << "dwFileMapStart: " << dwFileMapStart << endl;
 				logfile << "bytesToWrite: " << bytesToWrite << endl;
 				dwFileMapStart += bytesToWrite;
@@ -152,5 +152,9 @@ int _tmain(int argc, TCHAR *argv[])
 
 		SetEvent(readEvent);
 		SetEvent(writeEvent);
+		CloseHandle(hSharedMemory);
+		CloseHandle(hFileCopy);
+		CloseHandle(writeEvent);
+		CloseHandle(readEvent);
 		return 0;
 }
