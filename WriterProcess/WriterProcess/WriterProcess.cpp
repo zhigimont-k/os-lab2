@@ -92,7 +92,7 @@ int _tmain(int argc, TCHAR *argv[])
 			{
 				// The thread got ownership of the mutex
 			case WAIT_OBJECT_0:{
-				logfile << "WriterProcess: current owner of mutex" << endl;
+				logfile << "WriterProcess: active" << endl;
 					SYSTEMTIME st;
 
 					GetSystemTime(&st);
@@ -173,8 +173,6 @@ int _tmain(int argc, TCHAR *argv[])
 			}
 		}
 	
-
-		getchar();
 		return 0;
 
 }

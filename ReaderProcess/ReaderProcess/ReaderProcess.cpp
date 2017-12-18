@@ -87,7 +87,7 @@ int _tmain(int argc, TCHAR *argv[])
 			switch (dwWaitResult)
 			{
 			case WAIT_OBJECT_0:{
-				logfile << "ReaderProcess: current owner of mutex" << endl;
+				logfile << "ReaderProcess: active" << endl;
 				SYSTEMTIME st;
 
 				GetSystemTime(&st);
@@ -152,6 +152,5 @@ int _tmain(int argc, TCHAR *argv[])
 
 		SetEvent(readEvent);
 		SetEvent(writeEvent);
-		getchar();
 		return 0;
 }

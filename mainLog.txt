@@ -1,4 +1,3 @@
-Not enough arguments
 ->Start of parent execution.
 MainProcess: CreateEvent success
 MainProcess: OpenEvent success
@@ -8,3 +7,4 @@ MainProcess: CreateFileMapping success
 MainProcess: CreateFileMapping success
 CreateWriterProcess success
 CreateReaderProcess success
+MainProcess: child processes finished successfully

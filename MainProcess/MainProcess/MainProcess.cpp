@@ -16,6 +16,8 @@ TCHAR szName[] = TEXT("Global\\MyFileMappingObject");
 TCHAR sharedMemoryName[] = TEXT("Global\\SharedMemory");
 TCHAR writerPath[] = TEXT("..\\..\\WriterProcess\\Debug\\WriterProcess.exe");
 TCHAR readerPath[] = TEXT("..\\..\\ReaderProcess\\Debug\\ReaderProcess.exe");
+TCHAR readerArg[1024] = TEXT("");
+TCHAR writerArg[1024] = TEXT("");
 
 TCHAR readingFromMemoryProcessing[] = TEXT("Global\\readingFromMemoryProcessingEvent4589tu4efr");
 TCHAR writingToMemoryProcessing[] = TEXT("Global\\writingToMemoryProcessingEvent4589tu4efr");
@@ -37,9 +39,19 @@ int _tmain(int argc, TCHAR *argv[])
 	ofstream logfile;
 	logfile.open("..\\..\\mainLog.txt");
 
-	if (argc < 3) {
-		logfile << "Not enough arguments" << endl;
+	if (argc != 3) {
+		logfile << "Not correct arguments" << endl;
 		//return 0;
+	}
+	else {
+		StringCchCat(writerArg, STRSAFE_MAX_CCH, writerPath);
+		StringCchCat(writerArg, STRSAFE_MAX_CCH, _T(" "));
+		StringCchCat(writerArg, STRSAFE_MAX_CCH, argv[1]);
+		StringCchCat(readerArg, STRSAFE_MAX_CCH, readerPath);
+		StringCchCat(readerArg, STRSAFE_MAX_CCH, _T(" "));
+		StringCchCat(readerArg, STRSAFE_MAX_CCH, argv[1]);
+		StringCchCat(readerArg, STRSAFE_MAX_CCH, _T(" "));
+		StringCchCat(readerArg, STRSAFE_MAX_CCH, argv[2]);
 	}
 
 	logfile << "->Start of parent execution." << endl;
@@ -89,8 +101,8 @@ int _tmain(int argc, TCHAR *argv[])
 	}
 	else logfile << "MainProcess: CreateFileMapping success" << endl;
 	
-	if (!CreateProcess(NULL, writerPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siWriter, &piWriter) ||
-		!CreateProcess(NULL, readerPath, &saProcess, &saThread, FALSE, CREATE_NO_WINDOW, NULL, NULL, &siReader, &piReader)) {
+	if (!CreateProcess(NULL, writerArg, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siWriter, &piWriter) ||
+		!CreateProcess(NULL, readerArg, &saProcess, &saThread, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &siReader, &piReader)) {
 		logfile << "CreateChildProcesses failed" << endl;
 	}
 	else {

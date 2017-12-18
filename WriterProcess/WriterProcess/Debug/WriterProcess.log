@@ -1,2 +1,3 @@
 ﻿  WriterProcess.cpp
-LINK : fatal error LNK1168: не удается открыть C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.exe для записи
+  WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.exe
+  WriterProcess.vcxproj -> C:\Users\Karina\source\repos\ConsoleApplication1\WriterProcess\Debug\WriterProcess.pdb (Partial PDB)
